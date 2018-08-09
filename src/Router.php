@@ -21,11 +21,11 @@ class Router extends AbstractRouter
     protected $url;
     protected $routingBasePath;
     protected $requestNames = [
-        'GET' => ['get.php', 'request.php', 'main.php'],
-        'POST' => ['post.php', 'request.php', 'main.php'],
-        'PUT' => ['put.php', 'request.php', 'main.php'],
-        'PATCH' => ['patch.php', 'request.php', 'main.php'],
-        'DELETE' => ['delete.php', 'request.php', 'main.php']
+        'GET' => ['get.php', 'main.php'],
+        'POST' => ['post.php', 'main.php'],
+        'PUT' => ['put.php', 'main.php'],
+        'PATCH' => ['patch.php', 'main.php'],
+        'DELETE' => ['delete.php', 'main.php']
     ];
 
     /**
@@ -54,8 +54,8 @@ class Router extends AbstractRouter
         $this->requestType = $requestType;
         $this->url = $this->normalizeUrl($url);
 
-        $this->setAccessControllers();
         $this->createRoute();
+        $this->setAccessControllers();
     }
 
     /**
@@ -86,7 +86,7 @@ class Router extends AbstractRouter
         $this->absolutePathToAccessControllers = [];
         $route = $this->routingBasePath;
 
-        foreach (\explode('/', $this->url) as $arg)
+        foreach ($this->getRealArgs() as $arg)
         {
             $route .= $arg . '/';
             $path = $route . 'access.php';
