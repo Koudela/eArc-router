@@ -2,14 +2,17 @@
 
 Router component of the [eArc framework](https://github.com/Koudela/eArc-core).
 
-Decomposes an url path in parameters matching the maximal path in the routing 
-dir containing a main controller (real arguments) and a the rest (virtual
-arguments). Registers the main controller and all files named access.php along 
-the path as access controllers. 
+The eArc framework does not define any routes - they are expressed via the
+filesystem.
+
+The eArc router decomposes an url path in parameters matching the maximal path
+in the routing dir containing a main controller (real arguments) and a the rest
+(virtual arguments). Registers the main controller and all files named
+access.php along the path as access controllers.
 
 Given this direct mapping between the url and the directory structure,
 understanding the apps routing process is as simple as typing `tree` at the base
-of the routing dir.
+of the routing directory.
 
 ## Installation
 
