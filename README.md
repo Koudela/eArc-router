@@ -65,6 +65,7 @@ $router->getAbsolutePathToMainController(); // string
 ## Example
 
 Given some directories and files:
+
 ```
 /path/to/routing/base/dir/
 /path/to/routing/base/dir/somefile.php
@@ -82,11 +83,15 @@ Given some directories and files:
 /path/to/routing/base/dir/office/admin/user/access.php
 /path/to/routing/base/dir/office/admin/user/here_is_no_main.php
 ```
+
 And an URL:
+
 ```
 http://example.com/office/admin/user/200/expanded
 ```
+
 The real arguments are:
+
 ```php
 [
     0 => '',
@@ -94,7 +99,9 @@ The real arguments are:
     2 => 'admin'
 ]
 ```
+
 The virtual arguments are:
+
 ```php
 [
     0 => 'user',
@@ -102,22 +109,32 @@ The virtual arguments are:
     2 => 'expanded'
 ]
 ```
+
 The absolute paths to the access controllers are:
+
+
 ```php
 [
     0 => '/path/to/routing/base/dir/office/access.php',
     1 => '/path/to/routing/base/dir/office/admin/access.php'
 ]
 ```
+
 You might have realized that checking the access rights of your users is now as
 easy as drinking a cup of tea. It will be real hard to mess it up.
  
 Obviously the file `/path/to/routing/base/dir/office/admin/user/access.php` does 
 not belong to the access controllers as `user` is a virtual argument. The
 argument is virtual since the absolute path to the main controller is:
+
 ```php
 '/path/to/routing/base/dir/office/admin/main.php'
 ```
+
+To deepen the understanding of the power of this routing concept reading the 
+chapter about the access controllers in the 
+[eArc core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
+might be a good idea. 
 
 ## Advanced Usage  
 
