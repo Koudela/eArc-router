@@ -20,6 +20,9 @@ the component via composer.
 $ composer install earc/router
 ```
 
+Hint: If you want to install the eArc framework use the
+[earc/minimal package](https://github.com/Koudela/eArc-minimal).
+
 ## Basic Usage
 
 The router instance is always constructed with request method and url. Thus each
@@ -176,3 +179,9 @@ $router = new Router(
 ```
 If the maximal matching path has more than one possible main controller the
 left most matching controller is used.      
+
+## Releases
+
+### release v0.1
+
+the first official release

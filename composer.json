@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - router",
     "type": "library",
     "license": "MIT",
-    "version": "0.0.1",
+    "version": "0.1-rc",
     "authors": [
         {
             "name": "Thomas Koudela",
@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": "^7.2",
-        "earc/core": "dev-master#dd760fdd04bc2fa878f3daf8cd75a47511f03954"
+        "earc/core": "^0.1"
     },
     "autoload": {
         "psr-4" : {
