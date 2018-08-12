@@ -22,6 +22,7 @@ class Router extends AbstractRouter
     protected $routingBasePath;
     protected $requestNames = [
         'GET' => ['get.php', 'main.php'],
+        'HEAD' => ['head.php', 'get.php', 'main.php'],
         'POST' => ['post.php', 'main.php'],
         'PUT' => ['put.php', 'main.php'],
         'PATCH' => ['patch.php', 'main.php'],
