@@ -1,0 +1,148 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "2e760fc34438d44e6e0b020fe63c37cf",
+    "packages": [
+        {
+            "name": "earc/core",
+            "version": "0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Koudela/eArc-core.git",
+                "reference": "afea4de4460af7c22eaacefdd2b4115c31626bf0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Koudela/eArc-core/zipball/afea4de4460af7c22eaacefdd2b4115c31626bf0",
+                "reference": "afea4de4460af7c22eaacefdd2b4115c31626bf0",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "psr/container": "^1.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "eArc\\core\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Koudela",
+                    "email": "thomas@koudela.net"
+                }
+            ],
+            "description": "eArc - the explicit architecture framework - core component/dispatcher",
+            "time": "2018-08-11T09:40:23+00:00"
+        },
+        {
+            "name": "earc/event-tree",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Koudela/eArc-eventTree.git",
+                "reference": "ae0b8c2ad070ca16a763dc1c9da491bcf4c37765"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Koudela/eArc-eventTree/zipball/ae0b8c2ad070ca16a763dc1c9da491bcf4c37765",
+                "reference": "ae0b8c2ad070ca16a763dc1c9da491bcf4c37765",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "psr/container": "^1.0"
+            },
+            "require-dev": {
+                "behat/behat": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "eArc\\eventTree\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Koudela",
+                    "email": "thomas@koudela.net"
+                }
+            ],
+            "description": "eArc - the explicit architecture framework - event tree component",
+            "time": "2018-11-19T18:01:34+00:00"
+        },
+        {
+            "name": "psr/container",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/container.git",
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/container/zipball/b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Container\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common Container Interface (PHP FIG PSR-11)",
+            "homepage": "https://github.com/php-fig/container",
+            "keywords": [
+                "PSR-11",
+                "container",
+                "container-interface",
+                "container-interop",
+                "psr"
+            ],
+            "time": "2017-02-14T16:28:37+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "earc/event-tree": 20
+    },
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "^7.2"
+    },
+    "platform-dev": []
+}
