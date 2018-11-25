@@ -52,12 +52,12 @@ Each middleware that hooks into the apps livecycle can be registered via an
 listener of its own. Middleware listens to the event phase 
 `EventRouter::PHASE_ACCESS` mainly. 
 
-Once we have the action and middleware listeners written, we can build the 
+Once you have written the action and middleware listeners, you can build the 
 [observer tree](https://github.com/Koudela/eArc-eventTree/blob/master/doc/tree.md).
 Just use the `ObserverTreeFactory` of the event tree package. 
 
 ```php
-use eArc\eventTree\Transformation\ObserverTreeFactory;
+use eArc\EventTree\Transformation\ObserverTreeFactory;
 
 $OTF = new ObserverTreeFactory(
     $eventTreeDir, 
@@ -107,13 +107,97 @@ $dispatcher->dispatch(
  );
 ```
 
-## The action listener
+## The action listeners
 
-TODO: ...
+Lets look at the URI `https://your-domain.de/admin/somestuff/edit/2342`.
+In frameworks like Symfony your route would be `admin/somestuff/` probably 
+calling the method `editAction` from the `SomeStuffController` class. Supplying
+`2342` as parameter. The eArc router handles it slightly different, but not 
+much:
 
-## The access listener
+In your routing directory there is the `admin` subdirectory and therein the 
+`somestuff` directory with the `edit` directory. Obviously there will be no 
+`2342` directory. In the `edit` directory lives a listener. You can name it
+whatever you like.
 
-TODO: ...
+```php
+namespace your\event\tree\root\namespace\routing\admin\somestuff\edit;
+
+use eArc\EventTree\Event\Event;
+use eArc\EventTree\Interfaces\EventListener;
+
+class MyFooListener implements EventListener
+{
+    const EARC_LISTENER_PATIENCE = 1;
+    const EARC_LISTENER_TYPE = EventRouter::PHASE_DESTINATION;
+
+    public function processEvent(Event $event)
+    {
+        //... your controller code goes here
+        
+        // $param0 === '2342'
+        $param0 = $event->getPayload('route')->getVirtualArgs(0);
+        
+        // if the root event has a container attached
+        $container = $event->getContainer();
+        
+        // retrieve the request immutable
+        $request = $event->getPayload('request');
+        
+        // calling some third party stuff from the container
+        $conainer->get('twig')->render('index.html', array()); 
+    }
+}
+```  
+
+## The access listeners
+
+Because of the `EARC_LISTENER_TYPE` `EventRouter::PHASE_ACCESS` the following
+event listener is always called when the event get past `admin` (e.g. the url 
+starts with `admin/`).
+
+```php
+namespace your\event\tree\root\namespace\routing\admin;
+
+use eArc\EventTree\Event\Event;
+use eArc\EventTree\Interfaces\EventListener;
+
+use eArc\Router\Api\Dispatcher;
+
+class Bouncer implements EventListener
+{
+    const EARC_LISTENER_PATIENCE = -100;
+    const EARC_LISTENER_TYPE = EventRouter::PHASE_ACCESS;
+
+    public function processEvent(Event $event)
+    {
+        if (... user is not locked in ...) {
+
+            ... serialize and save $event->getPayload('route') ...
+            ... serialize and save $event->getPayload('request') ...
+            ... you can use this to dispatch a similar event later ...
+
+            $event->silence();
+            $event->kill();
+            
+            new Dispatcher($event->getTree(), $event)
+                ->dispatch('/login', [], 'GET');
+            
+            return;            
+        } else if (... user has not the admin privileges...) {
+            $event->silence();
+            $event->kill();
+
+            new Dispatcher($event->getTree(), $event)
+                ->dispatch('/login/access-denied', [], 'GET');
+        }
+    }
+}
+```  
+  
+You might have realized by now that checking the access rights of your users and
+rerouting them is as easy as drinking a cup of tea. It will be real hard to mess 
+it up.
 
 ## The route immutable
 
@@ -146,82 +230,17 @@ The `Request` object is immutable and exposes the four methods of the
 It can be accessed via the event payload key `'request'`.
 
 ```php
-$router->getRequestType(); // string ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', ...) 
+$request = $event->getPayload('request');
 
+
+$request->getRequestType(); // string ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', ...) 
+
+$request->hasRequestArg(string $name); // bool
+
+$request->getRequestArg(string $name); // mixed
+
+$request->getRequestArgs(); // array
 ```
-
-TODO: ...
-
-## Example (OLD V0.1)
-
-Given some directories and files:
-
-```
-/path/to/routing/base/dir/
-/path/to/routing/base/dir/somefile.php
-
-/path/to/routing/base/dir/office/
-/path/to/routing/base/dir/office/access.php
-/path/to/routing/base/dir/office/main.php
-/path/to/routing/base/dir/office/anotherfile.html
-
-/path/to/routing/base/dir/office/admin/
-/path/to/routing/base/dir/office/admin/access.php
-/path/to/routing/base/dir/office/admin/main.php
-
-/path/to/routing/base/dir/office/admin/user/
-/path/to/routing/base/dir/office/admin/user/access.php
-/path/to/routing/base/dir/office/admin/user/here_is_no_main.php
-```
-
-And an URL:
-
-```
-http://example.com/office/admin/user/200/expanded
-```
-
-The real arguments are:
-
-```php
-[
-    0 => '',
-    1 => 'office', 
-    2 => 'admin'
-]
-```
-
-The virtual arguments are:
-
-```php
-[
-    0 => 'user',
-    1 => '200',
-    2 => 'expanded'
-]
-```
-
-The absolute paths to the access controllers are:
-
-
-```php
-[
-    0 => '/path/to/routing/base/dir/office/access.php',
-    1 => '/path/to/routing/base/dir/office/admin/access.php'
-]
-```
-
-You might have realized that checking the access rights of your users is now as
-easy as drinking a cup of tea. It will be real hard to mess it up.
- 
-Obviously the file `/path/to/routing/base/dir/office/admin/user/access.php` does 
-not belong to the access controllers as `user` is a virtual argument. The
-argument is virtual since the absolute path to the main controller is:
-
-```php
-'/path/to/routing/base/dir/office/admin/main.php'
-```
-
-  
 
 ## Further reading 
 

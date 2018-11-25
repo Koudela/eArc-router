@@ -11,7 +11,7 @@
 namespace eArc\Router\Traits;
 
 /**
- * Implements the Getters of the RouteInformationInterface
+ * Implements the getters of the RouteInformationInterface
  */
 trait RouteInformationTrait
 {

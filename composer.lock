@@ -67,7 +67,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "eArc\\eventTree\\": "src"
+                    "eArc\\EventTree\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",

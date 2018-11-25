@@ -10,9 +10,9 @@
 
 namespace eArc\Router\Api;
 
-use eArc\eventTree\Event\Event;
-use eArc\eventTree\Tree\EventRouter;
-use eArc\eventTree\Tree\ObserverTree;
+use eArc\EventTree\Event\Event;
+use eArc\EventTree\Tree\EventRouter;
+use eArc\EventTree\Tree\ObserverTree;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
 
@@ -29,17 +29,15 @@ class Dispatcher
     protected $rootEvent;
 
     /**
-     * @param ObserverTree $observerTree
-     * @param Event $event
+     * @param Event|null $rootEvent
      */
-    public function __construct(ObserverTree $observerTree, Event $event = null)
+    public function __construct(Event $rootEvent)
     {
-        $this->observerTree = $observerTree;
-        $this->rootEvent = $event;
+        $this->rootEvent = $rootEvent;
     }
 
     /**
-     * Starts the lifecycle of the request event.
+     * Starts the lifecycle of the request/route event.
      *
      * @param string $url
      * @param array|null $requestArgs
@@ -47,11 +45,24 @@ class Dispatcher
      */
     public function dispatch(string $url, array $requestArgs = null, $requestType = 'GET'): void
     {
-        $route = new Route($this->observerTree, $url);
+        $route = new Route($this->rootEvent->getTree(), $url);
 
+        $request = new Request($requestArgs, $requestType);
+
+        $this->animate($route, $request);
+    }
+
+    /**
+     * Starts the lifecycle of the request/route event.
+     *
+     * @param Route $route
+     * @param Request $request
+     */
+    public function animate(Route $route, Request $request): void
+    {
         $event = new Event(
             $this->rootEvent,
-            $this->observerTree,
+            $this->rootEvent->getTree(),
             [],
             $route->getRealArgs(),
             $route->cntRealArgs(),
@@ -60,7 +71,7 @@ class Dispatcher
 
         $event->setPayload('route', $route);
 
-        $event->setPayload('request', new Request($requestArgs, $requestType));
+        $event->setPayload('request', $request);
 
         (new EventRouter($event))->dispatchEvent();
     }
