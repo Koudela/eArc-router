@@ -8,11 +8,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-
 namespace eArc\Router\Traits;
 
 /**
- * Implements the Getters of the RequestInformationInterface
+ * Implements the getters of the RequestInformationInterface
  */
 trait RequestInformationTrait
 {

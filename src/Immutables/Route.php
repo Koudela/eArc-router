@@ -10,8 +10,8 @@
 
 namespace eArc\Router\Immutables;
 
-use eArc\eventTree\Tree\ObserverLeaf;
-use eArc\eventTree\Tree\ObserverTree;
+use eArc\EventTree\Tree\ObserverLeaf;
+use eArc\EventTree\Tree\ObserverTree;
 use eArc\Router\Api\RouteInformationInterface;
 use eArc\Router\Traits\RouteInformationTrait;
 
