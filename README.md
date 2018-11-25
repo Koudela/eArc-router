@@ -15,7 +15,7 @@ of the routing directory.
 The two immutable objects Route and Request are attached as payload to the
 [event](https://github.com/Koudela/eArc-eventTree/blob/master/doc/event.md)
 the router dispatches on the observer tree. Route decomposes an url path in 
-parameters matching the maximal path in the routing dir/observer dir (real 
+parameters matching the maximal path in the routing dir/observer tree (real 
 arguments) and a the rest (virtual arguments). Request supplies the information
 about the http request. 
 
@@ -65,8 +65,8 @@ $OTF = new ObserverTreeFactory(
 );
 ```
 
-Now your code knows where your routing trees live. You can build the tree via
-the `get` method.
+Now your code knows where your event trees live. You can build your routing tree 
+via the `get` method.
 
 ```php
 $routingTree = $OTF->get('routing');
@@ -78,19 +78,17 @@ The `toString` method might be helpful for debugging purposes.
 echo $routingTree->toString();
 ```
 
-Using a root event might be a good idea if you want to supply a di-container or 
-some general payload to the routing/request event. In the other cases you can 
-just set it to `null`.
+Using the root event you can supply a di-container or some general payload to 
+the routing/request event.
 
 ```php
+use eArc\EventTree\Api\RootEvent;
 use eArc\Router\Api\Dispatcher;
 
-    '/absolute/path/to/your/routing/base/dir',
+$rootEvent = new RootEvent($myDIContainer);
+$rootEvent->addPayload('myPayloadKey', $myPayloadValue);
 
-$dispatcher = new Dispatcher(
-    $routingTree,
-    $rootEvent
-);
+$dispatcher = new Dispatcher($rootEvent);
 ```
 
 The routing/request event is always dispatched with an url, request variables 
@@ -124,7 +122,7 @@ whatever you like.
 namespace your\event\tree\root\namespace\routing\admin\somestuff\edit;
 
 use eArc\EventTree\Event\Event;
-use eArc\EventTree\Interfaces\EventListener;
+use eArc\EventTree\Api\EventListener;
 
 class MyFooListener implements EventListener
 {
@@ -160,7 +158,7 @@ starts with `admin/`).
 namespace your\event\tree\root\namespace\routing\admin;
 
 use eArc\EventTree\Event\Event;
-use eArc\EventTree\Interfaces\EventListener;
+use eArc\EventTree\Api\EventListener;
 
 use eArc\Router\Api\Dispatcher;
 
@@ -175,12 +173,13 @@ class Bouncer implements EventListener
 
             ... serialize and save $event->getPayload('route') ...
             ... serialize and save $event->getPayload('request') ...
-            ... you can use this to dispatch a similar event later ...
+            ... you can use this to dispatch a similar event later ... 
+            ... via (new Dispatcher($event))->animate($route, $request) ...
 
             $event->silence();
             $event->kill();
             
-            new Dispatcher($event->getTree(), $event)
+            (new Dispatcher($event))
                 ->dispatch('/login', [], 'GET');
             
             return;            
@@ -188,7 +187,7 @@ class Bouncer implements EventListener
             $event->silence();
             $event->kill();
 
-            new Dispatcher($event->getTree(), $event)
+            (new Dispatcher($event))
                 ->dispatch('/login/access-denied', [], 'GET');
         }
     }
@@ -244,15 +243,15 @@ $request->getRequestArgs(); // array
 
 ## Further reading 
 
-- To deepen the understanding of the power of this routing concept reading the 
-chapter about the access controllers in the 
-[eArc core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
-might be a good idea. 
-
 - Since the eArc/router is build on top of the
 [eArc/eventTree](https://github.com/Koudela/eArc-eventTree) please feel free to 
 consult the eArc/eventTree  
 [documentation](https://github.com/Koudela/eArc-eventTree/blob/master/README.md).
+
+- To deepen the understanding of the power of this routing concept reading the 
+chapter about the access controllers in the 
+[eArc core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
+might be a good idea. 
 
 ## Releases
 

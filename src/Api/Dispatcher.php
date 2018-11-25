@@ -69,9 +69,9 @@ class Dispatcher
             true
         );
 
-        $event->setPayload('route', $route);
+        $event->setPayload('route', $route, true);
 
-        $event->setPayload('request', $request);
+        $event->setPayload('request', $request, true);
 
         (new EventRouter($event))->dispatchEvent();
     }
