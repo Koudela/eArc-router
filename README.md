@@ -262,7 +262,7 @@ might be a good idea.
 directory tree.
 - The dispatcher is now part of eArc/router instead of eArc/core and dispatches 
 an eArc/eventTree event.
-- Introduces the immutable objects Route and Request. Both are attached as 
+- Introduces the immutable objects `Route` and `Request`. Both are attached as 
 payload to the dispatched eArc/eventTree event.
 - There are no controllers anymore. Access- and main-controllers are now
 represented as eArc/eventTree listeners.
