@@ -10,7 +10,7 @@
 
 namespace eArc\Router\Immutables;
 
-use eArc\Router\Api\RequestInformationInterface;
+use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Traits\RequestInformationTrait;
 
 /**

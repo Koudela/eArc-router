@@ -4,60 +4,26 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e760fc34438d44e6e0b020fe63c37cf",
+    "content-hash": "8238c227e8be1c0ea370135f7bbd6e5c",
     "packages": [
         {
-            "name": "earc/core",
-            "version": "0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Koudela/eArc-core.git",
-                "reference": "afea4de4460af7c22eaacefdd2b4115c31626bf0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Koudela/eArc-core/zipball/afea4de4460af7c22eaacefdd2b4115c31626bf0",
-                "reference": "afea4de4460af7c22eaacefdd2b4115c31626bf0",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2",
-                "psr/container": "^1.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "eArc\\core\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Thomas Koudela",
-                    "email": "thomas@koudela.net"
-                }
-            ],
-            "description": "eArc - the explicit architecture framework - core component/dispatcher",
-            "time": "2018-08-11T09:40:23+00:00"
-        },
-        {
             "name": "earc/event-tree",
-            "version": "dev-master",
+            "version": "dev-develop",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Koudela/eArc-eventTree.git",
-                "reference": "ae0b8c2ad070ca16a763dc1c9da491bcf4c37765"
+                "reference": "41d39e7a3e4ed230c2ff23d95728b18f0361ea1d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Koudela/eArc-eventTree/zipball/ae0b8c2ad070ca16a763dc1c9da491bcf4c37765",
-                "reference": "ae0b8c2ad070ca16a763dc1c9da491bcf4c37765",
+                "url": "https://api.github.com/repos/Koudela/eArc-eventTree/zipball/41d39e7a3e4ed230c2ff23d95728b18f0361ea1d",
+                "reference": "41d39e7a3e4ed230c2ff23d95728b18f0361ea1d",
                 "shasum": ""
             },
             "require": {
+                "earc/observer-tree": "dev-master",
+                "earc/payload-container": "dev-master",
+                "earc/tree": "dev-master",
                 "php": "^7.2",
                 "psr/container": "^1.0"
             },
@@ -81,7 +47,127 @@
                 }
             ],
             "description": "eArc - the explicit architecture framework - event tree component",
-            "time": "2018-11-19T18:01:34+00:00"
+            "time": "2018-11-28T21:01:46+00:00"
+        },
+        {
+            "name": "earc/observer-tree",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Koudela/eArc-observer-tree.git",
+                "reference": "3bb7f596dbc73b88db47112d47ffa68449d99049"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Koudela/eArc-observer-tree/zipball/3bb7f596dbc73b88db47112d47ffa68449d99049",
+                "reference": "3bb7f596dbc73b88db47112d47ffa68449d99049",
+                "shasum": ""
+            },
+            "require": {
+                "earc/tree": "dev-master",
+                "php": "^7.2",
+                "psr/container": "^1.0"
+            },
+            "require-dev": {
+                "behat/behat": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "eArc\\ObserverTree\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Koudela",
+                    "email": "thomas@koudela.net"
+                }
+            ],
+            "description": "eArc - the explicit architecture framework - observer composite component",
+            "time": "2018-11-27T18:53:47+00:00"
+        },
+        {
+            "name": "earc/payload-container",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Koudela/eArc-payload-container.git",
+                "reference": "57924a10baaa5d3b3ed6d426690ddd921629abaa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Koudela/eArc-payload-container/zipball/57924a10baaa5d3b3ed6d426690ddd921629abaa",
+                "reference": "57924a10baaa5d3b3ed6d426690ddd921629abaa",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "psr/container": "^1.0"
+            },
+            "require-dev": {
+                "behat/behat": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "eArc\\PayloadContainer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Koudela",
+                    "email": "thomas@koudela.net"
+                }
+            ],
+            "description": "eArc - the explicit architecture framework - psr compatible payload container component",
+            "time": "2018-11-28T06:05:02+00:00"
+        },
+        {
+            "name": "earc/tree",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Koudela/eArc-tree.git",
+                "reference": "07e64936816f4d4af7bb23ba23dfc48e8c503c61"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Koudela/eArc-tree/zipball/07e64936816f4d4af7bb23ba23dfc48e8c503c61",
+                "reference": "07e64936816f4d4af7bb23ba23dfc48e8c503c61",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2"
+            },
+            "require-dev": {
+                "behat/behat": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "eArc\\Tree\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Koudela",
+                    "email": "thomas@koudela.net"
+                }
+            ],
+            "description": "eArc - the explicit architecture framework - tree composite component",
+            "time": "2018-11-27T17:48:51+00:00"
         },
         {
             "name": "psr/container",

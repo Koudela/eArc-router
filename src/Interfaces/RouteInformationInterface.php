@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router\Api;
+namespace eArc\Router\Interfaces;
 
 /**
  * Describes methods to grant information derived from the url. The stated
