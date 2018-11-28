@@ -14,7 +14,7 @@
     "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "earc/event-tree": "dev-master"
+        "earc/event-tree": "dev-develop"
     },
     "autoload": {
         "psr-4" : {

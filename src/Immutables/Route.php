@@ -10,9 +10,8 @@
 
 namespace eArc\Router\Immutables;
 
-use eArc\EventTree\Tree\ObserverLeaf;
-use eArc\EventTree\Tree\ObserverTree;
-use eArc\Router\Api\RouteInformationInterface;
+use eArc\ObserverTree\Observer;
+use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Traits\RouteInformationTrait;
 
 /**
@@ -24,17 +23,17 @@ class Route implements RouteInformationInterface
 {
     use RouteInformationTrait;
 
-    /** @var ObserverTree */
+    /** @var Observer */
     protected $observerTree;
 
     /** @var string */
     protected $url;
 
     /**
-     * @param ObserverTree $observerTree
+     * @param Observer $observerTree
      * @param string $url
      */
-    public function __construct(ObserverTree $observerTree, string $url)
+    public function __construct(Observer $observerTree, string $url)
     {
         $this->observerTree = $observerTree;
         $this->url = $url;
@@ -49,7 +48,7 @@ class Route implements RouteInformationInterface
      */
     protected function init(): void
     {
-        /** @var ObserverLeaf $leaf */
+        /** @var Observer $leaf */
         $leaf = $this->observerTree;
 
         $this->virtualArgs = \explode('/', \trim($this->url, '/'));

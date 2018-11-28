@@ -8,11 +8,12 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router\Api;
+namespace eArc\Router;
 
-use eArc\EventTree\Event\Event;
-use eArc\EventTree\Tree\EventRouter;
-use eArc\EventTree\Tree\ObserverTree;
+use eArc\EventTree\Event;
+use eArc\EventTree\Propagation\EventRouter;
+use eArc\EventTree\Type;
+use eArc\ObserverTree\Observer;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
 
@@ -22,7 +23,7 @@ use eArc\Router\Immutables\Route;
  */
 class Dispatcher
 {
-    /** @var ObserverTree */
+    /** @var Observer */
     protected $observerTree;
 
     /** @var Event */
@@ -45,33 +46,24 @@ class Dispatcher
      */
     public function dispatch(string $url, array $requestArgs = null, $requestType = 'GET'): void
     {
-        $route = new Route($this->rootEvent->getTree(), $url);
+        $route = new Route($this->rootEvent->getType()->getTree(), $url);
 
         $request = new Request($requestArgs, $requestType);
 
-        $this->animate($route, $request);
-    }
-
-    /**
-     * Starts the lifecycle of the request/route event.
-     *
-     * @param Route $route
-     * @param Request $request
-     */
-    public function animate(Route $route, Request $request): void
-    {
         $event = new Event(
             $this->rootEvent,
-            $this->rootEvent->getTree(),
-            [],
-            $route->getRealArgs(),
-            $route->cntRealArgs(),
-            true
+            new Type(
+                $this->rootEvent->getType()->getTree(),
+                [],
+                $route->getRealArgs(),
+                $route->cntRealArgs()
+            ),
+            false
         );
 
-        $event->setPayload('route', $route, true);
+        $event->getPayload()->set('route', $route, true);
 
-        $event->setPayload('request', $request, true);
+        $event->getPayload()->set('request', $request, true);
 
         (new EventRouter($event))->dispatchEvent();
     }
