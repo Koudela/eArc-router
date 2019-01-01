@@ -45,7 +45,7 @@ its base directory with other event trees.
 
 ```php
 $eventTreeDir = '/path/to/event/tree/base/dir'
-$routingDir = $eventTreeDir . '/routing'
+$routingDir = $eventTreeDir . '/route'
 ```
 
 Each middleware that hooks into the apps livecycle can be registered via an
@@ -57,7 +57,7 @@ Once you have written the action and middleware listeners, you can build the
 Just use the `ObserverTreeFactory` of the event tree package. 
 
 ```php
-use eArc\EventTree\Transformation\ObserverTreeFactory;
+use eArc\ObserverTree\ObserverTreeFactory;
 
 $OTF = new ObserverTreeFactory(
     $eventTreeDir, 
@@ -69,7 +69,7 @@ Now your code knows where your event trees live. You can build your routing tree
 via the `get` method.
 
 ```php
-$routingTree = $OTF->get('routing');
+$routingTree = $OTF->get('route');
 ```
 
 The `toString` method might be helpful for debugging purposes.
@@ -82,11 +82,11 @@ Using the root event you can supply a di-container or some general payload to
 the routing/request event.
 
 ```php
-use eArc\EventTree\Api\RootEvent;
-use eArc\Router\Api\Dispatcher;
+use eArc\EventTree\Event;
+use eArc\Router\Dispatcher;
 
-$rootEvent = new RootEvent($myDIContainer);
-$rootEvent->addPayload('myPayloadKey', $myPayloadValue);
+$rootEvent = new Event($myDIContainer);
+$rootEvent->getPayload()->set('myPayloadKey', $myPayloadValue);
 
 $dispatcher = new Dispatcher($rootEvent);
 ```

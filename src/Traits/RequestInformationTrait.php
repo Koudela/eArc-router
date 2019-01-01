@@ -32,7 +32,7 @@ trait RequestInformationTrait
     /**
      * @inheritdoc
      */
-    public function hasRequestArg(string $name)
+    public function hasRequestArg(string $name): bool
     {
         return isset($this->requestArgs[$name]);
     }
@@ -48,7 +48,7 @@ trait RequestInformationTrait
     /**
      * @inheritdoc
      */
-    public function getRequestArgs() : array
+    public function getRequestArgs(): array
     {
         return $this->requestArgs;
     }
