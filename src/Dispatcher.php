@@ -56,7 +56,7 @@ class Dispatcher
                 $this->rootEvent->getType()->getTree(),
                 [],
                 $route->getRealArgs(),
-                $route->cntRealArgs()
+                $route->cntRealArgs() +1
             ),
             false
         );
