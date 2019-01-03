@@ -11,7 +11,6 @@
 namespace eArc\Router;
 
 use eArc\EventTree\Event;
-use eArc\EventTree\Propagation\EventRouter;
 use eArc\EventTree\Type;
 use eArc\ObserverTree\Observer;
 use eArc\Router\Immutables\Request;
@@ -42,29 +41,30 @@ class Dispatcher
      *
      * @param string $url
      * @param array|null $requestArgs
-     * @param string $requestType
+     * @param string[] $requestTypes
      */
-    public function dispatch(string $url, array $requestArgs = null, $requestType = 'GET'): void
+    public function dispatch(string $url, array $requestArgs = null, $requestTypes = ['GET', 'POST']): void
     {
-        $route = new Route($this->rootEvent->getType()->getTree(), $url);
+        $route = new Route($this->rootEvent->expose(Type::class)->getTree(), $url);
 
-        $request = new Request($requestArgs, $requestType);
+        $request = [];
 
-        $event = new Event(
-            $this->rootEvent,
-            new Type(
-                $this->rootEvent->getType()->getTree(),
-                [],
-                $route->getRealArgs(),
-                $route->cntRealArgs() +1
-            ),
-            false
-        );
+        if (!empty($requestArgs)) {
+            $request['SCRIPT'] = new Request($requestArgs, 'SCRIPT');
+        }
 
-        $event->getPayload()->set('route', $route, true);
+        foreach ($requestTypes as $requestType) {
+            $request[\strtoupper($requestType)] = new Request($requestArgs, $requestTypes);
+        }
 
-        $event->getPayload()->set('request', $request, true);
-
-        (new EventRouter($event))->dispatchEvent();
+        $this->rootEvent->getEventFactory()
+            ->inheritPayload(false)
+            ->start([])
+            ->destination($route->getRealArgs())
+            ->maxDepth($route->cntRealArgs() +1)
+            ->addPayload(Route::class, $route)
+            ->addPayload(Request::class, $request)
+            ->build()
+            ->dispatch();
     }
 }
