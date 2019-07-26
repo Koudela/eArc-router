@@ -1,108 +1,89 @@
-# eArc router
+# earc/router
 
-This is the router component of the 
-[eArc framework](https://github.com/Koudela/eArc-core). It also can be used
-within other frameworks or as standalone component.
+This is the router component of the [earc framework](https://github.com/Koudela/eArc-core). 
+It also can be used within other frameworks or as standalone component.
 
-The eArc router does not use any predefined routes - they are expressed via the
-filesystem which is transformed into an 
-[observer tree](https://github.com/Koudela/eArc-eventTree/blob/master/doc/tree.md).
+The earc router does not use any predefined routes - they are expressed via the 
+filesystem which is transformed into an observer tree.
 
-Given this direct mapping between the url and the directory structure,
-understanding the apps routing process is as simple as typing `tree` at the base
-of the routing directory.
+Given this direct mapping between the url and the directory structure, understanding 
+the apps routing process is as simple as typing `tree` at the base of the routing 
+directory.
 
-The two immutable objects Route and Request are attached as payload to the
-[event](https://github.com/Koudela/eArc-eventTree/blob/master/doc/event.md)
-the router dispatches on the observer tree. Route decomposes an url path in 
-parameters matching the maximal path in the routing dir/observer tree (real 
-arguments) and a the rest (virtual arguments). Request supplies the information
-about the http request. 
+The two immutable objects Route and Request are attached to the event the router 
+dispatches on the observer tree. Route decomposes an url path in parameters matching 
+the maximal path in the routing dir/observer tree (real arguments) and a the rest 
+(virtual arguments). Request supplies the information about the http request variables. 
 
-## Installation
+## installation
 
 ```
-$ composer install earc/router
+$ composer require earc/router
 ```
 
-Hint: If you want to install the eArc framework as new project use the
-[earc/minimal package](https://github.com/Koudela/eArc-minimal).
-
-## Basic Usage
+## bootstrapping the router 
 
 As always you can use the composer autoloader.
 
 ```php
-include 'path/to/your/project/dir/' . 'vendor/autoload.php';
+include '/path/to/your/project/dir/' . 'vendor/autoload.php';
 ```
 
-First of all you need a directory where your eArc/eventTree 
-[listeners](https://github.com/Koudela/eArc-eventTree/blob/master/doc/listener.md)
-live in. Each controller action (as you may know from Symfony) is a listener of 
-its own. In most use cases they listen to the event phase 
-`EventRouter::PHASE_DESTINATION`. Please note that the routing event tree shares 
-its base directory with other event trees.  
+First of all you need a directory where your [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
+listeners live in. Each controller action (as you may know from other frameworks) 
+is a listener of its own. In most use cases they listen to the event phase `EventRouter::PHASE_DESTINATION`. 
+Please note that the routing event tree shares its base directory with other event 
+trees.  
+
+```YAML
+# config.yml
+
+earc:
+  project_dir: '/absolute/path/to/your/project'
+
+  observer_tree:
+    root_directory: 'src/tree'
+    directories:
+      src/tree: 'namespace\\of\\src\\tree'
+
+  router:
+    directory: 'routing'
+```
 
 ```php
-$eventTreeDir = '/path/to/event/tree/base/dir'
-$routingDir = $eventTreeDir . '/route'
+# config.php
+
+di_import_param(
+    Yaml::parse(
+        file_get_contents('/path/to/config.yml')
+    )
+);
 ```
 
 Each middleware that hooks into the apps livecycle can be registered via an
 listener of its own. Middleware listens to the event phase 
-`EventRouter::PHASE_ACCESS` mainly. 
+`EventRouter::PHASE_ACCESS` mainly.
 
-Once you have written the action and middleware listeners, you can build the 
-[observer tree](https://github.com/Koudela/eArc-eventTree/blob/master/doc/tree.md).
-Just use the `ObserverTreeFactory` of the event tree package. 
+Once you have written the action and middleware listeners, you can build and dispatch
+the event.
 
-```php
-use eArc\ObserverTree\ObserverTreeFactory;
-
-$OTF = new ObserverTreeFactory(
-    $eventTreeDir, 
-    'your\\event\\tree\\root\\namespace'
-);
-```
-
-Now your code knows where your event trees live. You can build your routing tree 
-via the `get` method.
+The router event is always build with an url, request method and variables. Thus 
+each router event instance is always bound to a valid request and can be easily 
+serialized and saved for later use if necessary. The request variables can be set 
+to `null` to initialize the auto import of the 'INPUT_*' variables.
 
 ```php
-$routingTree = $OTF->get('route');
-```
+# bootstrap.php
 
-The `toString` method might be helpful for debugging purposes.
+use eArc/router/RouterEvent;
 
-```php
-echo $routingTree->toString();
-```
-
-Using the root event you can supply a di-container or some general payload to 
-the routing/request event.
-
-```php
-use eArc\EventTree\Event;
-use eArc\Router\Dispatcher;
-
-$rootEvent = new Event($myDIContainer);
-$rootEvent->getPayload()->set('myPayloadKey', $myPayloadValue);
-
-$dispatcher = new Dispatcher($rootEvent);
-```
-
-The routing/request event is always dispatched with an url, request variables 
-and method. Thus each routing/request event instance is always bound to a valid 
-request and can be easily serialized and saved for later use if necessary. The
-request variables can be set to `null` to initialize the auto import of the 
-'INPUT_*' variables.
- 
-```php
-$dispatcher->dispatch(
+$event = new RouterEvent(
     $_REQUEST['url'] ?? '/',
-    $requestVariables,
-    $_SERVER['REQUEST_METHOD']
- );
+    $_SERVER['REQUEST_METHOD'],
+    $requestVariables
+);
+
+$event->dispatch();
 ```
 
 ## The action listeners
@@ -116,37 +97,45 @@ much:
 In your routing directory there is the `admin` subdirectory and therein the 
 `somestuff` directory with the `edit` directory. Obviously there will be no 
 `2342` directory. In the `edit` directory lives a listener. You can name it
-whatever you like.
+whatever you like, but it has to implement the Controller Interface.
 
 ```php
-namespace your\event\tree\root\namespace\routing\admin\somestuff\edit;
+# /absolute/path/to/your/project/src/tree/routing/admin/somestuff/edit/MyFooListener.php
+ 
+namespace namespace\of\src\tree\routing\admin\somestuff\edit;
 
-use eArc\EventTree\Event\Event;
-use eArc\EventTree\Api\EventListener;
+use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
+use eArc\eventTree\Interfaces\ObserverTreeInterface
+use eArc\router\Interfaces\ControllerInterface
 
-class MyFooListener implements EventListener
+class MyFooListener implements ControllerInterface, PhaseSpecificListenerInterface
 {
-    const EARC_LISTENER_PATIENCE = 1;
-    const EARC_LISTENER_TYPE = EventRouter::PHASE_DESTINATION;
-
     public function processEvent(Event $event)
     {
         //... your controller code goes here
         
-        // $param0 === '2342'
-        $param0 = $event->getPayload('route')->getVirtualArgs(0);
+        // $param_0 === '2342'
+        $param_0 = $event->getRouteInformation('route')->getVirtualArgs(0);
         
-        // if the root event has a container attached
-        $container = $event->getContainer();
+        // you can use earc/di to get hold of your dependencies
+        $service = di_get(Service::class);
         
-        // retrieve the request immutable
-        $request = $event->getPayload('request');
+        // retrieve the POST request immutable
+        $request = $event->getRequestInformation('POST');
         
         // calling some third party stuff from the container
-        $conainer->get('twig')->render('index.html', array()); 
+        di_get(FactoryService::class)->getTwig()->render('index.html', array()); 
+    }
+    
+    public static function getPhase()
+    {
+        return ObserverTreeInterface::PHASE_DESTINATION;
     }
 }
 ```  
+
+If you use the route somewhere you can use the `earc_route` function with the
+fully qualified controller class name as argument to retrieve it.
 
 ## The access listeners
 
@@ -155,41 +144,45 @@ event listener is always called when the event get past `admin` (e.g. the url
 starts with `admin/`).
 
 ```php
-namespace your\event\tree\root\namespace\routing\admin;
+# /absolute/path/to/your/project/src/tree/routing/admin/Bouncer.php
+ 
+namespace namespace\of\src\tree\routing\admin;
 
-use eArc\EventTree\Event\Event;
-use eArc\EventTree\Api\EventListener;
+use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
+use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
+use eArc\eventTree\Interfaces\ObserverTreeInterface
+use eArc\router\Interfaces\ControllerInterface
 
-use eArc\Router\Api\Dispatcher;
-
-class Bouncer implements EventListener
+class Bouncer implements ControllerInterface, PhaseSpecificListenerInterface, SortableListenerInterface  
 {
-    const EARC_LISTENER_PATIENCE = -100;
-    const EARC_LISTENER_TYPE = EventRouter::PHASE_ACCESS;
 
     public function processEvent(Event $event)
     {
-        if (... user is not locked in ...) {
+        if (... user is not logged in ...) {
 
-            ... serialize and save $event->getPayload('route') ...
-            ... serialize and save $event->getPayload('request') ...
+            ... serialize and save $event ...
             ... you can use this to dispatch a similar event later ... 
-            ... via (new Dispatcher($event))->animate($route, $request) ...
 
-            $event->silence();
-            $event->kill();
+            $event->getHandler->kill();
             
-            (new Dispatcher($event))
-                ->dispatch('/login', [], 'GET');
+            (new RouterEvent('/login', 'GET', []))->dispatch();
             
             return;            
         } else if (... user has not the admin privileges...) {
-            $event->silence();
             $event->kill();
 
-            (new Dispatcher($event))
-                ->dispatch('/login/access-denied', [], 'GET');
+            (new RouterEvent('/login/access-denied', 'GET', []))->dispatch();
         }
+    }
+    
+    public static function getPatience()
+    {
+        return -100;
+    }
+    
+    public static funciton getPhase()
+    {
+        EventRouter::PHASE_ACCESS;
     }
 }
 ```  
@@ -200,12 +193,11 @@ it up.
 
 ## The route immutable
 
-The `Route` object is immutable and exposes the six methods of the 
-`RouteInformationInterface` for retrieving route
-information. It can be accessed via the event payload key `'route'`.
+The `Route` object is immutable and exposes the six methods of the `RouteInformationInterface` 
+for retrieving route information. It can be accessed via `getRouteInformation()`.
 
 ```php
-$route = $event->getPayload('route');
+$route = $event->getRouteInformation();
 
 
 $route->cntRealArgs(); // int (number real parameter) 
@@ -226,10 +218,10 @@ $route->getVirtualArgs(): // array (all virtual parameter; key === position)
 
 The `Request` object is immutable and exposes the four methods of the 
 `RequestInformationInterface` for retrieving information concerning the request. 
-It can be accessed via the event payload key `'request'`.
+It can be accessed via `getRequestInformation($requestType)`.
 
 ```php
-$request = $event->getPayload('request');
+$request = $event->getRequestInformation($requestType);
 
 
 $request->getRequestType(); // string ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', ...) 
@@ -243,14 +235,11 @@ $request->getRequestArgs(); // array
 
 ## Further reading 
 
-- Since the eArc/router is build on top of the
-[eArc/eventTree](https://github.com/Koudela/eArc-eventTree) please feel free to 
-consult the eArc/eventTree  
-[documentation](https://github.com/Koudela/eArc-eventTree/blob/master/README.md).
+- Since the eArc/router is build on top of the [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
+please feel free to consult the earc/event-tree documentation.
 
 - To deepen the understanding of the power of this routing concept reading the 
-chapter about the access controllers in the 
-[eArc core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
+chapter about the access controllers in the  [earc/core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
 might be a good idea. 
 
 ## Releases
@@ -258,14 +247,14 @@ might be a good idea.
 ### release v1.0
 
 - The route is now matched against an 
-[eArc/eventTree](https://github.com/Koudela/eArc-eventTree) instead of a 
+[earc/event-tree](https://github.com/Koudela/eArc-eventTree) instead of a 
 directory tree.
-- The dispatcher is now part of eArc/router instead of eArc/core and dispatches 
-an eArc/eventTree event.
+- The dispatcher is now part of earc/router instead of earc/core and dispatches 
+an earc/event-tree event.
 - Introduces the immutable objects `Route` and `Request`. Both are attached as 
-payload to the dispatched eArc/eventTree event.
+payload to the dispatched earc/event-tree event.
 - There are no controllers anymore. Access- and main-controllers are now
-represented as eArc/eventTree listeners.
+represented as earc/event-tree listeners.
 
 ### release v0.1
 
