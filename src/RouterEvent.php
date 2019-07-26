@@ -65,4 +65,9 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
     {
         return [ControllerInterface::class];
     }
+
+    public function __sleep(): array
+    {
+        return ['propagationType', 'routeInformation', 'requestInformation'];
+    }
 }
