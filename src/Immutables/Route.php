@@ -1,16 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * router component
  *
  * @package earc/router
  * @link https://github.com/Koudela/earc-router/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
 namespace eArc\Router\Immutables;
 
-use eArc\ObserverTree\Observer;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Traits\RouteInformationTrait;
 
@@ -23,19 +23,14 @@ class Route implements RouteInformationInterface
 {
     use RouteInformationTrait;
 
-    /** @var Observer */
-    protected $observerTree;
-
     /** @var string */
     protected $url;
 
     /**
-     * @param Observer $observerTree
      * @param string $url
      */
-    public function __construct(Observer $observerTree, string $url)
+    public function __construct(string $url)
     {
-        $this->observerTree = $observerTree;
         $this->url = $url;
 
         $this->init();
@@ -48,20 +43,23 @@ class Route implements RouteInformationInterface
      */
     protected function init(): void
     {
-        /** @var Observer $leaf */
-        $leaf = $this->observerTree;
+        chdir(di_param('earc.project_dir'));
+        chdir(di_param('earc.observer_tree.root_directory'));
+        chdir(di_param('earc.router.directory'));
 
-        $this->virtualArgs = \explode('/', \trim($this->url, '/'));
+        $this->virtualArgs = explode('/', trim($this->url, '/'));
 
         while ($param = array_shift($this->virtualArgs))
         {
-            if ($leaf = $leaf->getChild($param))
+            if (is_dir($param))
             {
-                $this->realArgs[] = $param;
-                continue;
+                array_unshift($this->virtualArgs, $param);
+                break;
             }
-            array_unshift($this->virtualArgs, $param);
-            break;
+
+            chdir($param);
+
+            $this->realArgs[] = $param;
         }
     }
 }
