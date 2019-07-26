@@ -1,10 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * router component
  *
  * @package earc/router
  * @link https://github.com/Koudela/earc-router/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
@@ -28,7 +29,7 @@ class Request implements RequestInformationInterface
      */
     public function __construct(array $requestArgs = null, string $requestType = 'GET')
     {
-        $this->requestType = \strtoupper($requestType);
+        $this->requestType = $requestType;
         $this->requestArgs = $requestArgs ?? $this->importRequestArgs();
     }
 
@@ -39,7 +40,7 @@ class Request implements RequestInformationInterface
      */
     protected function importRequestArgs(): array
     {
-        $type = '_' . $this->requestType;
+        $type = '_'.$this->requestType;
 
         if (!isset($$type) || !is_array($$type)) {
             return [];
@@ -49,7 +50,7 @@ class Request implements RequestInformationInterface
 
         foreach ($$type as $key => $value)
         {
-            if ($arg = \filter_input('INPUT' . $type, $key, FILTER_UNSAFE_RAW))
+            if ($arg = filter_input('INPUT' . $type, $key, FILTER_UNSAFE_RAW))
             {
                 $requestArgs[$key] = $arg;
             }
