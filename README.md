@@ -106,7 +106,7 @@ namespace namespace\of\src\tree\routing\admin\somestuff\edit;
 
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\router\Interfaces\ControllerInterface
+use eArc\Router\Interfaces\ControllerInterface
 
 class MyFooListener implements ControllerInterface, PhaseSpecificListenerInterface
 {
@@ -151,7 +151,7 @@ namespace namespace\of\src\tree\routing\admin;
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\router\Interfaces\ControllerInterface
+use eArc\Router\Interfaces\ControllerInterface
 
 class Bouncer implements ControllerInterface, PhaseSpecificListenerInterface, SortableListenerInterface  
 {
@@ -259,3 +259,10 @@ represented as earc/event-tree listeners.
 ### release v0.1
 
 This is the first official release.
+
+
+TODO:
+- composer
+- Tests 
+- ParameterInterface
+- Expose Live-Circle via eventTree 
