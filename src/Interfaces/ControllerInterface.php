@@ -9,14 +9,17 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\router\Interfaces;
+namespace eArc\Router\Interfaces;
 
-interface ControllerInterface
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\Observer\Interfaces\ListenerInterface;
+
+interface ControllerInterface extends ListenerInterface
 {
     /**
      * Processes the router event.
      *
-     * @param RouterEventInterface $event
+     * @param RouterEventInterface|EventInterface $event
      */
-    public function process(RouterEventInterface $event): void;
+    public function process(EventInterface $event): void;
 }

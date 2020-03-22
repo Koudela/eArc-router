@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\router\Exceptions;
+namespace eArc\Router\Exceptions;
 
 /**
  * The argument supplied to `earc_route` is not valid fully qualified controller

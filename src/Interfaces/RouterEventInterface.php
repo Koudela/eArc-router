@@ -9,10 +9,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\router\Interfaces {
+namespace eArc\Router\Interfaces {
 
     use eArc\EventTree\Interfaces\TreeEventInterface;
-    use eArc\router\Exceptions\NoRequestInformationException;
+    use eArc\Router\Exceptions\NoRequestInformationException;
 
     interface RouterEventInterface extends TreeEventInterface
     {
@@ -39,7 +39,7 @@ namespace eArc\router\Interfaces {
 
 namespace {
 
-    use eArc\router\Exceptions\NoRouteException;
+    use eArc\Router\Exceptions\NoRouteException;
 
     if (!function_exists('earc_route')) {
         /**
