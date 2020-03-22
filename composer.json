@@ -18,8 +18,9 @@
     },
     "autoload": {
         "psr-4" : {
-            "eArc\\Router\\" : "src",
-            "eArc\\RouterTests\\" : "tests"
+            "eArc\\Router\\": "src",
+            "eArc\\RouterEventTreeRoot\\": "earc-event-tree",
+            "eArc\\RouterTests\\": "tests"
         }
     },
     "require-dev": {
