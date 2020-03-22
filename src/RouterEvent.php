@@ -9,17 +9,17 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\router;
+namespace eArc\Router;
 
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
-use eArc\router\Exceptions\NoRequestInformationException;
+use eArc\Router\Exceptions\NoRequestInformationException;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
-use eArc\router\Interfaces\ControllerInterface;
+use eArc\Router\Interfaces\ControllerInterface;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
-use eArc\router\Interfaces\RouterEventInterface;
+use eArc\Router\Interfaces\RouterEventInterface;
 
 class RouterEvent extends TreeEvent implements RouterEventInterface
 {

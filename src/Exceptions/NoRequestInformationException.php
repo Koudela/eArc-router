@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\router\Exceptions;
+namespace eArc\Router\Exceptions;
 
 /**
  * No request information is supplied for the specified request type.
