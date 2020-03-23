@@ -1,4 +1,4 @@
-# earc/router
+# eArc-router
 
 This is the router component of the [earc framework](https://github.com/Koudela/eArc-core). 
 It also can be used within other frameworks or as standalone component.
@@ -15,50 +15,81 @@ dispatches on the observer tree. Route decomposes an url path in parameters matc
 the maximal path in the routing dir/observer tree (real arguments) and a the rest 
 (virtual arguments). Request supplies the information about the http request variables. 
 
-## installation
+## Install
 
 ```
 $ composer require earc/router
 ```
 
-## bootstrapping the router 
+## Bootstrap 
 
-As always you can use the composer autoloader.
+earc/router uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
+injection. 
 
 ```php
-include '/path/to/your/project/dir/' . 'vendor/autoload.php';
+use eArc\DI\DI;
+
+require_once '/path/to/your/vendor/dir/autoload.php';
+
+DI::init();
 ```
 
-First of all you need a directory where your [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
-listeners live in. Each controller action (as you may know from other frameworks) 
+Place the above code in the section where your script/framework is 
+bootstrapped.
+
+## Configure
+
+earc/router uses [earc/event-tree](https://github.com/Koudela/eArc-eventTree) to
+pass routing events to observers represented by the directory structure. You
+need an folder within your namespace that is the root for the event tree.
+
+```php
+di_import_param(['earc' => [
+    'vendor_directory' => __DIR__.'/../../vendor',
+    'event_tree' => [
+        'directories' => [
+            '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
+        ]   
+    ]
+]]);
+```
+
+The path to the root folder has to be relative to your projects vendor directory.
+
+Of course you can use a yml file to define the configuration array.
+ 
+```php
+di_import_param(Yaml::parse(file_get_contents('/path/to/config.yml')));
+```
+
+## Use
+
+Since we use the native tree data structures of the modern operating systems to
+organize our code it is a tiny step to define our routes and targeting controller.
+
+It is as easy as it can get.
+ 
+1. Go to the event tree root directory and make a new subdirectory `routing`.
+2. For every route make subdirectories for the fixed part and put a class at
+the end extending the `AbstractController`.
+3. Use the `process()` method and the passed `RouterEvent` to hook your controller
+logic.
+
+### The controller
+
+
+
+
+### Pre and post processing router events via listeners attached to the route
+
+### Pre and post processing router events via live cycle hooks
+
+
+
+Each controller action (as you may know from other frameworks) 
 is a listener of its own. In most use cases they listen to the event phase `EventRouter::PHASE_DESTINATION`. 
 Please note that the routing event tree shares its base directory with other event 
 trees.  
-
-```YAML
-# config.yml
-
-earc:
-  project_dir: '/absolute/path/to/your/project'
-
-  observer_tree:
-    root_directory: 'src/tree'
-    directories:
-      src/tree: 'namespace\\of\\src\\tree'
-
-  router:
-    directory: 'routing'
-```
-
-```php
-# config.php
-
-di_import_param(
-    Yaml::parse(
-        file_get_contents('/path/to/config.yml')
-    )
-);
-```
 
 Each middleware that hooks into the apps livecycle can be registered via an
 listener of its own. Middleware listens to the event phase 
