@@ -17,17 +17,17 @@ namespace eArc\Router\Traits;
 trait RouteInformationTrait
 {
     /** @var array */
-    protected $realArgs = [];
+    protected $realArgv = [];
 
     /** @var array */
-    protected $virtualArgs = [];
+    protected $virtualArgv = [];
 
     /**
      * @inheritdoc
      */
-    public function cntRealArgs(): int
+    public function cntRealArgv(): int
     {
-        return count($this->realArgs);
+        return count($this->realArgv);
     }
 
     /**
@@ -35,23 +35,23 @@ trait RouteInformationTrait
      */
     public function getRealArg(int $pos): ?string
     {
-        return isset($this->realArgs[$pos]) ? $this->realArgs[$pos] : null;
+        return isset($this->realArgv[$pos]) ? $this->realArgv[$pos] : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getRealArgs(): array
+    public function getRealArgv(): array
     {
-        return $this->realArgs;
+        return $this->realArgv;
     }
 
     /**
      * @inheritdoc
      */
-    public function cntVirtualArgs(): int
+    public function cntVirtualArgv(): int
     {
-        return count($this->virtualArgs);
+        return count($this->virtualArgv);
     }
 
     /**
@@ -59,14 +59,14 @@ trait RouteInformationTrait
      */
     public function getVirtualArg(int $pos): ?string
     {
-        return isset($this->virtualArgs[$pos]) ? $this->virtualArgs[$pos] : null;
+        return isset($this->virtualArgv[$pos]) ? $this->virtualArgv[$pos] : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getVirtualArgs(): array
+    public function getVirtualArgv(): array
     {
-        return $this->virtualArgs;
+        return $this->virtualArgv;
     }
 }

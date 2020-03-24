@@ -13,7 +13,6 @@ namespace eArc\Router;
 
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
-use eArc\Router\Exceptions\NoRequestInformationException;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
 use eArc\Router\Interfaces\ControllerInterface;
@@ -23,42 +22,35 @@ use eArc\Router\Interfaces\RouterEventInterface;
 
 class RouterEvent extends TreeEvent implements RouterEventInterface
 {
-    /** @var RequestInformationInterface[] */
-    protected $requestInformation = [];
+    /** @var RequestInformationInterface */
+    protected $request;
 
     /** @var RouteInformationInterface */
-    protected $routeInformation;
+    protected $route;
 
-    public function __construct(string $url, $requestTypes = ['GET', 'POST'], array $requestArgs = null)
+    public function __construct(?string $uri = null, ?string $requestMethod = null, ?array $argv = null)
     {
-        $this->routeInformation = new Route($url);
+        $path = preg_replace(['#.*//[^/]+#', '#\?.*#'], ['', ''], $uri ?? $_SERVER['REQUEST_URI']);
 
-        foreach ($requestTypes as $requestType) {
-            $args = isset($requestArgs[$requestType]) ? $requestArgs[$requestType] : null;
-            $request[$requestType] = new Request($args, $requestType);
-        }
+        $this->route = new Route($path);
 
-        $propagationType = new PropagationType(
-            [di_param('earc.router.directory')],
-            $this->routeInformation->getRealArgs(),
+        $this->request = new Request($requestMethod, $argv);
+
+        parent::__construct(new PropagationType(
+            ['routing'],
+            $this->route->getRealArgv(),
             0
-        );
-
-        parent::__construct($propagationType);
+        ));
     }
 
-    public function getRequestInformation(string $requestType = 'GET'): RequestInformationInterface
+    public function getRequest(): RequestInformationInterface
     {
-        if (!isset($this->requestInformation[$requestType])) {
-            throw new NoRequestInformationException(sprintf('No request information is available for %s.', $requestType));
-        }
-
-        return $this->requestInformation[$requestType];
+        return $this->request;
     }
 
-    public function getRouteInformation(): RouteInformationInterface
+    public function getRoute(): RouteInformationInterface
     {
-        return $this->routeInformation;
+        return $this->route;
     }
 
     public static function getApplicableListener(): array
@@ -68,6 +60,6 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
     public function __sleep(): array
     {
-        return ['propagationType', 'routeInformation', 'requestInformation'];
+        return ['propagationType', 'route', 'request'];
     }
 }

@@ -23,6 +23,11 @@ $ composer require earc/router
 
 ## Bootstrap 
 
+Place the following code snippets in the section where your script/framework is 
+bootstrapped.
+
+To use the                                                   
+
 earc/router uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
 injection. 
 
@@ -34,8 +39,13 @@ require_once '/path/to/your/vendor/dir/autoload.php';
 DI::init();
 ```
 
-Place the above code in the section where your script/framework is 
-bootstrapped.
+```php
+use eArc\Router\RouterEvent;
+
+$event = new RouterEvent();
+$event->dispatch();
+```
+
 
 ## Configure
 
@@ -45,9 +55,10 @@ need an folder within your namespace that is the root for the event tree.
 
 ```php
 di_import_param(['earc' => [
-    'vendor_directory' => __DIR__.'/../../vendor',
+    'vendor_directory' => '/path/to/your/vendor/dir',
     'event_tree' => [
         'directories' => [
+            'earc/router/earc-event-tree' => 'eArc\\RouterEventTreeRoot',
             '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
         ]   
     ]
@@ -286,6 +297,8 @@ an earc/event-tree event.
 payload to the dispatched earc/event-tree event.
 - There are no controllers anymore. Access- and main-controllers are now
 represented as earc/event-tree listeners.
+- The router live cycle is exposed via an event tree. Making it easy to implement
+pre and post processing.
 
 ### release v0.1
 
@@ -296,4 +309,3 @@ TODO:
 - composer
 - Tests 
 - ParameterInterface
-- Expose Live-Circle via eventTree 

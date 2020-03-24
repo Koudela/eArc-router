@@ -12,8 +12,9 @@
 namespace eArc\Router\Exceptions;
 
 /**
- * No request information is supplied for the specified request type.
+ * The fully qualified class name cannot be transformed to a route since the
+ * class is blacklisted.
  */
-class NoRequestInformationException extends BaseException
+class IsBlacklistedException extends BaseException
 {
 }
