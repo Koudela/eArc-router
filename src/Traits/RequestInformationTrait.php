@@ -17,40 +17,40 @@ namespace eArc\Router\Traits;
 trait RequestInformationTrait
 {
     /** @var string */
-    protected $requestType = '';
+    protected $type = '';
 
     /** @var array */
-    protected $requestArgs = [];
+    protected $argv = [];
 
     /**
      * @inheritdoc
      */
-    public function getRequestType(): string
+    public function getType(): string
     {
-        return $this->requestType;
+        return $this->type;
     }
 
     /**
      * @inheritdoc
      */
-    public function hasRequestArg(string $name): bool
+    public function hasArg(string $name): bool
     {
-        return isset($this->requestArgs[$name]);
+        return isset($this->argv[$name]);
     }
 
     /**
      * @inheritdoc
      */
-    public function getRequestArg(string $name)
+    public function getArg(string $name)
     {
-        return $this->requestArgs[$name];
+        return $this->argv[$name];
     }
 
     /**
      * @inheritdoc
      */
-    public function getRequestArgs(): array
+    public function getArgv(): array
     {
-        return $this->requestArgs;
+        return $this->argv;
     }
 }

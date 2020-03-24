@@ -23,14 +23,10 @@ class Request implements RequestInformationInterface
 {
     use RequestInformationTrait;
 
-    /**
-     * @param array|null $requestArgs
-     * @param string $requestType
-     */
-    public function __construct(array $requestArgs = null, string $requestType = 'GET')
+    public function __construct(?string $type = null, ?array $argv = null)
     {
-        $this->requestType = $requestType;
-        $this->requestArgs = $requestArgs ?? $this->importRequestArgs();
+        $this->type = $type ?? $_SERVER['REQUEST_METHOD'];
+        $this->argv = $argv ?? $this->importArgv();
     }
 
     /**
@@ -38,24 +34,24 @@ class Request implements RequestInformationInterface
      *
      * @return array
      */
-    protected function importRequestArgs(): array
+    protected function importArgv(): array
     {
-        $type = '_'.$this->requestType;
+        $type = '_'.$this->type;
 
         if (!isset($$type) || !is_array($$type)) {
             return [];
         }
 
-        $requestArgs = [];
+        $argv = [];
 
         foreach ($$type as $key => $value)
         {
             if ($arg = filter_input('INPUT' . $type, $key, FILTER_UNSAFE_RAW))
             {
-                $requestArgs[$key] = $arg;
+                $argv[$key] = $arg;
             }
         }
 
-        return $requestArgs;
+        return $argv;
     }
 }

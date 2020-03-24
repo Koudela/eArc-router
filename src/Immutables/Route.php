@@ -11,6 +11,7 @@
 
 namespace eArc\Router\Immutables;
 
+use eArc\EventTree\Util\CompositeDir;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Traits\RouteInformationTrait;
 
@@ -24,16 +25,16 @@ class Route implements RouteInformationInterface
     use RouteInformationTrait;
 
     /** @var string */
-    protected $url;
+    protected $path;
 
     /**
-     * @param string $url
+     * @param string $path
      */
-    public function __construct(string $url)
+    public function __construct(string $path)
     {
-        $this->url = $url;
+        $this->path = $path;
 
-        $this->init();
+        $this->getRouteInformation();
     }
 
     /**
@@ -41,25 +42,27 @@ class Route implements RouteInformationInterface
      *
      * @return void
      */
-    protected function init(): void
+    protected function getRouteInformation(): void
     {
-        chdir(di_param('earc.project_dir'));
-        chdir(di_param('earc.observer_tree.root_directory'));
-        chdir(di_param('earc.router.directory'));
+        $path = 'routing';
 
-        $this->virtualArgs = explode('/', trim($this->url, '/'));
+        $this->virtualArgv = explode('/', '/'.trim($this->path, '/'));
 
-        while ($param = array_shift($this->virtualArgs))
+        $param = array_shift($this->virtualArgv);
+
+        do
         {
-            if (is_dir($param))
-            {
-                array_unshift($this->virtualArgs, $param);
-                break;
+            if ($param) {
+                $path .= '/' . $param;
+
+                $this->realArgv[] = $param;
             }
 
-            chdir($param);
-
-            $this->realArgs[] = $param;
+            if (empty(CompositeDir::getSubDirNames($path)))
+            {
+                break;
+            }
         }
+        while ($param = array_shift($this->virtualArgv));
     }
 }

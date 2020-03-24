@@ -12,8 +12,8 @@
 namespace eArc\Router\Exceptions;
 
 /**
- * The argument supplied to `earc_route` is not valid fully qualified controller
- * class name.
+ * The fully qualified class name cannot be transformed to a route since the
+ * class does not live in the routing part of the event tree.
  */
 class NoRouteException extends BaseException
 {

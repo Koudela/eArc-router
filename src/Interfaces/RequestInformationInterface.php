@@ -24,7 +24,7 @@ interface RequestInformationInterface
      *
      * @return string
      */
-    public function getRequestType(): string;
+    public function getType(): string;
 
 
     /**
@@ -34,21 +34,21 @@ interface RequestInformationInterface
      *
      * @return bool
      */
-    public function hasRequestArg(string $name): bool;
+    public function hasArg(string $name): bool;
 
     /**
      * Get the request variable by its name.
      *
      * @param string $name
      *
-     * @return mixed
+     * @return string
      */
-    public function getRequestArg(string $name);
+    public function getArg(string $name);
 
     /**
      * Get the request variables.
      *
-     * @return array
+     * @return string[]
      */
-    public function getRequestArgs() : array;
+    public function getArgv() : array;
 }

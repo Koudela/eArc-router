@@ -23,13 +23,14 @@ interface RouteInformationInterface
      *
      * @return integer
      */
-    public function cntRealArgs(): int;
+    public function cntRealArgv(): int;
 
     /**
      * Get the arg at position $pos related to the Controller path or null if
      * there is no arg at position $pos.
      *
      * @param integer $pos
+     *
      * @return string|null
      */
     public function getRealArg(int $pos): ?string;
@@ -37,22 +38,23 @@ interface RouteInformationInterface
     /**
      * Get a copy of the args related to the Controller path
      *
-     * @return array
+     * @return string[]
      */
-    public function getRealArgs(): array;
+    public function getRealArgv(): array;
 
     /**
      * Get the count of args not related to the Controller path.
      *
      * @return integer
      */
-    public function cntVirtualArgs(): int;
+    public function cntVirtualArgv(): int;
 
     /**
      * Get the arg at position $pos not related to the Controller path or null
      * if there is no arg at position $pos.
      *
      * @param integer $pos
+     *
      * @return string|null
      */
     public function getVirtualArg(int $pos): ?string;
@@ -62,5 +64,5 @@ interface RouteInformationInterface
      *
      * @return array
      */
-    public function getVirtualArgs(): array;
+    public function getVirtualArgv(): array;
 }
