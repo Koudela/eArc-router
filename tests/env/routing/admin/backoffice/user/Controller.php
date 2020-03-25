@@ -11,22 +11,8 @@
 
 namespace eArc\RouterTests\env\routing\admin\backoffice\user;
 
-use eArc\Observer\Interfaces\EventInterface;
-use eArc\Router\AbstractController;
-use eArc\Router\Interfaces\RouterEventInterface;
+use eArc\RouterTests\env\BaseController;
 
-class Controller extends AbstractController
+class Controller extends BaseController
 {
-    /**
-     * @inheritDoc
-     */
-    public function process(EventInterface $event): void
-    {
-        if ($event instanceof RouterEventInterface) {
-            $a = 0;
-            unset($a);
-
-            var_dump('TEST');
-        }
-    }
 }

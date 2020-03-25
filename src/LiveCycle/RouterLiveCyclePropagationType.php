@@ -12,7 +12,6 @@
 namespace eArc\Router\LiveCycle;
 
 use eArc\EventTree\Propagation\PropagationType;
-use eArc\Router\RouterEventDispatcher;
 
 class RouterLiveCyclePropagationType extends PropagationType
 {

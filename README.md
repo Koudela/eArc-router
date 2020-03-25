@@ -148,9 +148,9 @@ namespace namespace\of\src\tree\routing\admin\somestuff\edit;
 
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\Router\Interfaces\ControllerInterface
+use eArc\Router\Interfaces\RouterListenerInterface
 
-class MyFooListener implements ControllerInterface, PhaseSpecificListenerInterface
+class MyFooListener implements RouterListenerInterface, PhaseSpecificListenerInterface
 {
     public function processEvent(Event $event)
     {
@@ -193,9 +193,9 @@ namespace namespace\of\src\tree\routing\admin;
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
 use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\Router\Interfaces\ControllerInterface
+use eArc\Router\Interfaces\RouterListenerInterface
 
-class Bouncer implements ControllerInterface, PhaseSpecificListenerInterface, SortableListenerInterface  
+class Bouncer implements RouterListenerInterface, PhaseSpecificListenerInterface, SortableListenerInterface  
 {
 
     public function processEvent(Event $event)

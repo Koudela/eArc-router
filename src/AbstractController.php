@@ -14,9 +14,9 @@ namespace eArc\Router;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Transformation\ObserverTree;
-use eArc\Router\Interfaces\ControllerInterface;
+use eArc\Router\Interfaces\RouterListenerInterface;
 
-abstract class AbstractController implements ControllerInterface, PhaseSpecificListenerInterface, SortableListenerInterface
+abstract class AbstractController implements RouterListenerInterface, PhaseSpecificListenerInterface, SortableListenerInterface
 {
     public static function getPhase(): int
     {

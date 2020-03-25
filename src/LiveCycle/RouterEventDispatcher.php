@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router;
+namespace eArc\Router\LiveCycle;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
@@ -19,7 +19,6 @@ use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\Transformation\ObserverTree;
 use eArc\Router\Interfaces\RouterEventInterface;
-use eArc\Router\LiveCycle\RouterLiveCyclePropagationType;
 
 class RouterEventDispatcher implements EventDispatcherInterface
 {
@@ -44,12 +43,13 @@ class RouterEventDispatcher implements EventDispatcherInterface
     public function dispatch($event): TreeEventInterface
     {
         foreach ($this->observerTree->getListenersForEvent($event) as $callable) {
+            var_dump('dispatch', get_class($event));
             if (!$event instanceof RouterEventInterface) {
                 continue;
             }
 
             $liveCycleEvent = new RouterLiveCycleEvent(
-                new RouterLiveCyclePropagationType(['earc-router-livecycle', 'pre-call'], [], null),
+                new PropagationType(['earc', 'livecycle', 'router', 'pre_call'], [], null),
                 $event,
                 $callable
             );

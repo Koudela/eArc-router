@@ -9,12 +9,11 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router;
+namespace eArc\Router\LiveCycle;
 
+use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
-use eArc\Router\Interfaces\ControllerInterface;
 use eArc\Router\Interfaces\RouterEventInterface;
-use eArc\Router\LiveCycle\RouterLiveCyclePropagationType;
 
 class RouterLiveCycleEvent extends TreeEvent
 {
@@ -24,7 +23,7 @@ class RouterLiveCycleEvent extends TreeEvent
     /** @var callable [ControllerInterface, 'process'] */
     public $controllerCallable;
 
-    public function __construct(RouterLiveCyclePropagationType $propagationType, RouterEventInterface $routerEvent, ControllerInterface $controllerCallable)
+    public function __construct(PropagationType $propagationType, RouterEventInterface $routerEvent, callable $controllerCallable)
     {
         parent::__construct($propagationType);
 
