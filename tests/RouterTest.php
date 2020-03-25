@@ -9,12 +9,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTreeTests;
+namespace eArc\RouterTests;
 
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\Router\RouterEvent;
+use eArc\RouterTests\env\Collector;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,6 +23,9 @@ use PHPUnit\Framework\TestCase;
  */
 class RouterTest extends TestCase
 {
+    /** @var string[] */
+    public static $collector = [];
+
     /**
      * @throws InvalidArgumentException
      * @throws IsDispatchedException
@@ -65,13 +69,22 @@ class RouterTest extends TestCase
     {
         di_clear_cache();
 
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
         $event = new RouterEvent('/admin/backoffice/user/edit/1', 'GET');
         $event->dispatch();
+        var_dump($collector->calledListener);
 
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
         $event = new RouterEvent('', 'GET');
         $event->dispatch();
+        var_dump($collector->calledListener);
 
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
         $event = new RouterEvent('/', 'GET');
         $event->dispatch();
+        var_dump($collector->calledListener);
     }
 }

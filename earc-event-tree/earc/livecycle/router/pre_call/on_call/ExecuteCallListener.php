@@ -9,17 +9,21 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router\Interfaces;
+namespace eArc\RouterEventTreeRoot\earc\livecycle\router\pre_call\on_call;
 
 use eArc\Observer\Interfaces\EventInterface;
 use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\Router\LiveCycle\RouterLiveCycleEvent;
 
-interface ControllerInterface extends ListenerInterface
+class ExecuteCallListener implements ListenerInterface
 {
     /**
-     * Processes the router event.
-     *
-     * @param RouterEventInterface|EventInterface $event
+     * @inheritDoc
      */
-    public function process(EventInterface $event): void;
+    public function process(EventInterface $event): void
+    {
+        if ($event instanceof RouterLiveCycleEvent) {
+            call_user_func($event->controllerCallable, $event->routerEvent);
+        }
+    }
 }

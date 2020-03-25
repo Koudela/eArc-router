@@ -13,12 +13,14 @@ namespace eArc\Router;
 
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
+use eArc\Observer\Interfaces\ListenerInterface;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
-use eArc\Router\Interfaces\ControllerInterface;
+use eArc\Router\Interfaces\RouterListenerInterface;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Interfaces\RouterEventInterface;
+use eArc\Router\LiveCycle\RouterLiveCyclePropagationType;
 
 class RouterEvent extends TreeEvent implements RouterEventInterface
 {
@@ -36,7 +38,7 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
         $this->request = new Request($requestMethod, $argv);
 
-        parent::__construct(new PropagationType(
+        parent::__construct(new RouterLiveCyclePropagationType(
             ['routing'],
             $this->route->getRealArgv(),
             0
@@ -55,7 +57,7 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
     public static function getApplicableListener(): array
     {
-        return [ControllerInterface::class];
+        return [RouterListenerInterface::class];
     }
 
     public function __sleep(): array
