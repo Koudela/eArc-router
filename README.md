@@ -15,6 +15,21 @@ dispatches on the observer tree. Route decomposes an url path in parameters matc
 the maximal path in the routing dir/observer tree (real arguments) and a the rest 
 (virtual arguments). Request supplies the information about the http request variables. 
 
+## Table of contents
+
+ - [Install](#install)
+ - [Bootstrap](#bootstrap)
+ - [Configure](#configure)
+ - [Use](#use)
+    - [The controller](#the-controller)
+    - [The router event](#the-router-event)
+ - [Advanced usage](#advanced-usage)
+    - [Pre and post processing](#pre-and-post-processing)
+        - [Via listeners attached to the route](#via-listeners-attached-to-the-route)
+        - [Via live cycle hooks](#via-live-cycle-hooks)
+    - [Customized events](#customized-events)
+    - [Customized routes](#customized-routes)
+
 ## Install
 
 ```
@@ -26,18 +41,23 @@ $ composer require earc/router
 Place the following code snippets in the section where your script/framework is 
 bootstrapped.
 
-To use the                                                   
+1. Make use of the composer namespace driven autoloading.
 
-earc/router uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
-injection. 
+```php
+require_once '/path/to/your/vendor/dir/autoload.php';
+```
+                                                   
+2. Then bootstrap [earc/di](https://github.com/Koudela/eArc-di) for dependency injection. 
 
 ```php
 use eArc\DI\DI;
 
-require_once '/path/to/your/vendor/dir/autoload.php';
-
 DI::init();
 ```
+
+3. Configure the router (see [configure](#configure)).
+
+4. And dispatch the router event to call the responsible controller(s).
 
 ```php
 use eArc\Router\RouterEvent;
@@ -45,7 +65,6 @@ use eArc\Router\RouterEvent;
 $event = new RouterEvent();
 $event->dispatch();
 ```
-
 
 ## Configure
 
@@ -70,7 +89,7 @@ The path to the root folder has to be relative to your projects vendor directory
 Of course you can use a yml file to define the configuration array.
  
 ```php
-di_import_param(Yaml::parse(file_get_contents('/path/to/config.yml')));
+di_import_param(Yaml::parse(file_get_contents('/path/to/your/config.yml')));
 ```
 
 ## Use
@@ -88,12 +107,189 @@ logic.
 
 ### The controller
 
+Given you plan to use the urls `/admin/user`, `/admin/user/edit/{id}`, `/admin/user/add` 
+and `/admin/user/delete` for their obvious purpose. Then you have two options:
+
+1. Either you place one controller in the `routing/admin/user` directory (with **no** 
+subdirectories named `edit`, `add` or `delte`). Then all user managing logic has
+to be spawned in this one controller.
+
+2. Or you place one controller in the `routing/admin/user` directory and a second in 
+the `routing/admin/user/edit` directory and another in the `routing/admin/user/add`
+directory and the last in the `routing/admin/user/delete` directory. 
+
+The second is the recommended way. Since the routing mechanism does not support
+parametrized method calling and it forces the programmers to move business logic
+out of the controller. Nevertheless if you want to stick to the first way you can 
+implement it in an abstract `BaseController` extending the `AbstractController`. 
+You need only a few lines of code.
+
+Your controller have to extend the `AbstractController`.
+
+```php
+namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\AbstractController;
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\Router\RouterEvent;
+
+class Controller extends AbstractController
+{
+    public function process(EventInterface $event) : void
+    {
+        //... your controller code goes here
+
+        // if you need the routing Parameters, you should check if it is an Routing Event.
+        if ($event instanceof RouterEvent) {
+            //... a very basic example without form processing
+
+            // the parameters are the route arguments that does not match a directory        
+            $id = $event->getRoute()->getParam(1);
+            // if you use doctrine the next step could look like this
+            $user = di_get(UserRepository::class)->find($id);
+            // calling some third party rendering engine    
+            di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $user]);
+        }
+    }
+}
+```
+
+Since your controllers have all different Namespaces you can name them all
+controller. But it is recommended to name them in a more explicit way.
+ 
+### The router event
+
+Every router event carries information about the request and the route. They are
+saved in a request immutable (access via `$event->getRequest()`) and a route 
+immutable (access via `$event->getRoute()`). For details consult the `RouteInformationInterface`
+and the `RequestInformationInterface`.
+
+## Advanced usage
+
+### Pre and post processing 
+
+There are a tons of examples where logic needs to be executed before or after
+the controller logic. They can be divided into three cases.
+1. The logic is specific to one route/controller.
+2. The logic is specific to a sub route/class of controllers.
+3. The logic is useful for all or nearly all controllers.
+
+#### Via listeners attached to the route
+
+The first two cases can use the fact, that the earc/router uses the 
+[earc/event-tree](https://github.com/Koudela/eArc-eventTree) package. The route
+events travel from the routing folder to the targeted controller and can be
+intercepted via listeners. 
+
+Lets start with the second case first.
+
+The router event triggers all listeners that implement the `RouterListenerInterface`.
+Suppose you want to check the admin privileges for all routes starting with `/admin`.
+Simply put a class in the `routing/admin` folder that implements the 
+`RouterListenerInterface` and process the event analogue to the controller. You can
+even kill the event if it shall not reach any controller. Of course you can spawn
+a new one that routes to `/login` or `/error-pages/access-denied`.
+
+```php
+namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\Interfaces\RouterListenerInterface;
+use eArc\Router\RouterEvent;
+use eArc\Observer\Interfaces\EventInterface;
+
+class Listener implements RouterListenerInterface
+{
+    public function process(EventInterface $event) : void
+    {
+        //... your listener code goes here
+
+        if ($event instanceof RouterEvent) {
+            //... 
+            // the user is not logged in
+            $event->getHandler()->kill();
+            (new RouterEvent('/login'))->dispatch();
+            // ...
+            // the user has no admin privileges
+            $event->getHandler()->kill();
+            (new RouterEvent('/error-pages/access-denied'))->dispatch();
+            //...
+        }
+    }
+}
+```
+
+Please note a new router event does not redirect the browser client. It simply
+changes the flow of the apps request processing. To make an redirect change the 
+path from `/login` to `/redirect/login` and place into the `routing/redirect` folder
+an listener or controller that makes an redirect.
+
+As you can see you can even use the router event to decouple your logic. Something
+all event trees have in common.
+
+Let us look at the second case now.
+
+You can put a listener in the same directory a the controller. It has to implement
+the `SortableListenerInterface` in order to get called before or after the controller.
+And if it shall be called only if the route is targeting the controller the listener 
+it has to implement the `PhaseSpecificListenerInterface` too. 
+
+```php
+use eArc\EventTree\Transformation\ObserverTree;
+use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\Router\Interfaces\RouterListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+
+class Listener implements RouterListenerInterface, SortableListenerInterface, PhaseSpecificListenerInterface
+{
+    public function process(EventInterface $event) : void
+    {
+        //...
+    }
+                          
+    public static function getPatience() : float
+    {
+        // it has a negative patience and is hence called before the controller
+        // who has a patience of 0.
+        return -1;
+    }
+
+    public static function getPhase(): int
+    {
+        // listener with phase destination are only called if the route matches
+        return ObserverTree::PHASE_DESTINATION;
+    }
+}
+```
+
+#### Via live cycle hooks
 
 
 
-### Pre and post processing router events via listeners attached to the route
+### Customized events
 
-### Pre and post processing router events via live cycle hooks
+
+
+### Customized routes
+
+Internationalization etc. 
+
+The router event is always build with an url, request method and variables. Thus 
+each router event instance is always bound to a valid request and can be easily 
+serialized and saved for later use if necessary. The request variables can be set 
+to `null` to initialize the auto import of the 'INPUT_*' variables.
+
+```php
+use eArc\Router\RouterEvent;
+
+$event = new RouterEvent(
+    $_REQUEST['url'] ?? '/',
+    $_SERVER['REQUEST_METHOD'],
+    $requestVariables
+);
+
+$event->dispatch();
+```
 
 
 
@@ -109,24 +305,6 @@ listener of its own. Middleware listens to the event phase
 Once you have written the action and middleware listeners, you can build and dispatch
 the event.
 
-The router event is always build with an url, request method and variables. Thus 
-each router event instance is always bound to a valid request and can be easily 
-serialized and saved for later use if necessary. The request variables can be set 
-to `null` to initialize the auto import of the 'INPUT_*' variables.
-
-```php
-# bootstrap.php
-
-use eArc/router/RouterEvent;
-
-$event = new RouterEvent(
-    $_REQUEST['url'] ?? '/',
-    $_SERVER['REQUEST_METHOD'],
-    $requestVariables
-);
-
-$event->dispatch();
-```
 
 ## The action listeners
 
@@ -142,138 +320,19 @@ In your routing directory there is the `admin` subdirectory and therein the
 whatever you like, but it has to implement the Controller Interface.
 
 ```php
-# /absolute/path/to/your/project/src/tree/routing/admin/somestuff/edit/MyFooListener.php
- 
-namespace namespace\of\src\tree\routing\admin\somestuff\edit;
+use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\Router\Interfaces\RouterListenerInterface;
 
-use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
-use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\Router\Interfaces\RouterListenerInterface
-
-class MyFooListener implements RouterListenerInterface, PhaseSpecificListenerInterface
-{
-    public function processEvent(Event $event)
-    {
-        //... your controller code goes here
-        
-        // $param_0 === '2342'
-        $param_0 = $event->getRouteInformation('route')->getVirtualArgs(0);
-        
-        // you can use earc/di to get hold of your dependencies
-        $service = di_get(Service::class);
-        
-        // retrieve the POST request immutable
-        $request = $event->getRequestInformation('POST');
-        
-        // calling some third party stuff from the container
-        di_get(FactoryService::class)->getTwig()->render('index.html', array()); 
-    }
-    
-    public static function getPhase()
-    {
-        return ObserverTreeInterface::PHASE_DESTINATION;
-    }
-}
+class MyFooListener implements 
 ```  
 
 If you use the route somewhere you can use the `earc_route` function with the
 fully qualified controller class name as argument to retrieve it.
 
-## The access listeners
-
-Because of the `EARC_LISTENER_TYPE` `EventRouter::PHASE_ACCESS` the following
-event listener is always called when the event get past `admin` (e.g. the url 
-starts with `admin/`).
-
-```php
-# /absolute/path/to/your/project/src/tree/routing/admin/Bouncer.php
- 
-namespace namespace\of\src\tree\routing\admin;
-
-use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
-use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface
-use eArc\eventTree\Interfaces\ObserverTreeInterface
-use eArc\Router\Interfaces\RouterListenerInterface
-
-class Bouncer implements RouterListenerInterface, PhaseSpecificListenerInterface, SortableListenerInterface  
-{
-
-    public function processEvent(Event $event)
-    {
-        if (... user is not logged in ...) {
-
-            ... serialize and save $event ...
-            ... you can use this to dispatch a similar event later ... 
-
-            $event->getHandler->kill();
-            
-            (new RouterEvent('/login', 'GET', []))->dispatch();
-            
-            return;            
-        } else if (... user has not the admin privileges...) {
-            $event->kill();
-
-            (new RouterEvent('/login/access-denied', 'GET', []))->dispatch();
-        }
-    }
-    
-    public static function getPatience()
-    {
-        return -100;
-    }
-    
-    public static funciton getPhase()
-    {
-        EventRouter::PHASE_ACCESS;
-    }
-}
-```  
   
 You might have realized by now that checking the access rights of your users and
 rerouting them is as easy as drinking a cup of tea. It will be real hard to mess 
 it up.
-
-## The route immutable
-
-The `Route` object is immutable and exposes the six methods of the `RouteInformationInterface` 
-for retrieving route information. It can be accessed via `getRouteInformation()`.
-
-```php
-$route = $event->getRouteInformation();
-
-
-$route->cntRealArgs(); // int (number real parameter) 
-
-$route->getRealArg(int $pos); // ?string (real parameter at positon $pos)
-
-$route->getRealArgs(); // array (all real parameter; key === position)
-
-
-$route->cntVirtualArgs(); // int (number virtual parameter)
-
-$route->getVirtualArg(int $pos); // ?string (virtual parameter at position $pos)
-
-$route->getVirtualArgs(): // array (all virtual parameter; key === position)
-```
-
-## The request immutable
-
-The `Request` object is immutable and exposes the four methods of the 
-`RequestInformationInterface` for retrieving information concerning the request. 
-It can be accessed via `getRequestInformation($requestType)`.
-
-```php
-$request = $event->getRequestInformation($requestType);
-
-
-$request->getRequestType(); // string ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', ...) 
-
-$request->hasRequestArg(string $name); // bool
-
-$request->getRequestArg(string $name); // mixed
-
-$request->getRequestArgs(); // array
-```
 
 ## Further reading 
 

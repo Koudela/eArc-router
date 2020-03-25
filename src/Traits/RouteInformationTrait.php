@@ -17,56 +17,56 @@ namespace eArc\Router\Traits;
 trait RouteInformationTrait
 {
     /** @var array */
-    protected $realArgv = [];
+    protected $dirs = [];
 
     /** @var array */
-    protected $virtualArgv = [];
+    protected $params = [];
 
     /**
      * @inheritdoc
      */
-    public function cntRealArgv(): int
+    public function cntDirs(): int
     {
-        return count($this->realArgv);
+        return count($this->dirs);
     }
 
     /**
      * @inheritdoc
      */
-    public function getRealArg(int $pos): ?string
+    public function getDir(int $pos): ?string
     {
-        return isset($this->realArgv[$pos]) ? $this->realArgv[$pos] : null;
+        return isset($this->dirs[$pos]) ? $this->dirs[$pos] : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getRealArgv(): array
+    public function getDirs(): array
     {
-        return $this->realArgv;
+        return $this->dirs;
     }
 
     /**
      * @inheritdoc
      */
-    public function cntVirtualArgv(): int
+    public function cntParams(): int
     {
-        return count($this->virtualArgv);
+        return count($this->params);
     }
 
     /**
      * @inheritdoc
      */
-    public function getVirtualArg(int $pos): ?string
+    public function getParam(int $pos): ?string
     {
-        return isset($this->virtualArgv[$pos]) ? $this->virtualArgv[$pos] : null;
+        return isset($this->param[$pos]) ? $this->params[$pos] : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getVirtualArgv(): array
+    public function getParams(): array
     {
-        return $this->virtualArgv;
+        return $this->params;
     }
 }

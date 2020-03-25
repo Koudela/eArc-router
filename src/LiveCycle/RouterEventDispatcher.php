@@ -49,7 +49,7 @@ class RouterEventDispatcher implements EventDispatcherInterface
             }
 
             $liveCycleEvent = new RouterLiveCycleEvent(
-                new PropagationType(['earc', 'livecycle', 'router', 'pre_call'], [], null),
+                new PropagationType(['earc', 'livecycle', 'router'], [], null),
                 $event,
                 $callable
             );

@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\RouterEventTreeRoot\earc\livecycle\router\pre_call\on_call;
+namespace eArc\RouterEventTreeRoot\earc\livecycle\router;
 
 use eArc\Observer\Interfaces\EventInterface;
 use eArc\Observer\Interfaces\ListenerInterface;

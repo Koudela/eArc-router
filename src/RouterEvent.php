@@ -40,7 +40,7 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
         parent::__construct(new RouterLiveCyclePropagationType(
             ['routing'],
-            $this->route->getRealArgv(),
+            $this->route->getDirs(),
             0
         ));
     }
