@@ -130,26 +130,22 @@ Your controller have to extend the `AbstractController`.
 namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
 
 use eArc\Router\AbstractController;
-use eArc\Observer\Interfaces\EventInterface;
-use eArc\Router\RouterEvent;
+use eArc\Router\Interfaces\RouterEventInterface;
 
 class Controller extends AbstractController
 {
-    public function process(EventInterface $event) : void
+    public function process(RouterEventInterface $event) : void
     {
         //... your controller code goes here
 
-        // if you need the routing Parameters, you should check if it is an Routing Event.
-        if ($event instanceof RouterEvent) {
-            //... a very basic example without form processing
+        //... a very basic example without form processing
 
-            // the parameters are the route arguments that does not match a directory        
-            $id = $event->getRoute()->getParam(1);
-            // if you use doctrine the next step could look like this
-            $user = di_get(UserRepository::class)->find($id);
-            // calling some third party rendering engine    
-            di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $user]);
-        }
+        // the parameters are the route arguments that does not match a directory        
+        $id = $event->getRoute()->getParam(1);
+        // if you use doctrine the next step could look like this
+        $user = di_get(UserRepository::class)->find($id);
+        // calling some third party rendering engine    
+        di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $user]);
     }
 }
 ```
@@ -195,25 +191,23 @@ namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
 
 use eArc\Router\Interfaces\RouterListenerInterface;
 use eArc\Router\RouterEvent;
-use eArc\Observer\Interfaces\EventInterface;
+use eArc\Router\Interfaces\RouterEventInterface;
 
 class Listener implements RouterListenerInterface
 {
-    public function process(EventInterface $event) : void
+    public function process(RouterEventInterface $event) : void
     {
         //... your listener code goes here
 
-        if ($event instanceof RouterEvent) {
-            //... 
-            // the user is not logged in
-            $event->getHandler()->kill();
-            (new RouterEvent('/login'))->dispatch();
-            // ...
-            // the user has no admin privileges
-            $event->getHandler()->kill();
-            (new RouterEvent('/error-pages/access-denied'))->dispatch();
-            //...
-        }
+        //... 
+        // the user is not logged in
+        $event->getHandler()->kill();
+        (new RouterEvent('/login'))->dispatch();
+        // ...
+        // the user has no admin privileges
+        $event->getHandler()->kill();
+        (new RouterEvent('/error-pages/access-denied'))->dispatch();
+        //...
     }
 }
 ```
@@ -237,12 +231,12 @@ it has to implement the `PhaseSpecificListenerInterface` too.
 use eArc\EventTree\Transformation\ObserverTree;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\Router\Interfaces\RouterListenerInterface;
-use eArc\Observer\Interfaces\EventInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\Router\Interfaces\RouterEventInterface;
 
 class Listener implements RouterListenerInterface, SortableListenerInterface, PhaseSpecificListenerInterface
 {
-    public function process(EventInterface $event) : void
+    public function process(RouterEventInterface $event) : void
     {
         //...
     }
@@ -264,7 +258,154 @@ class Listener implements RouterListenerInterface, SortableListenerInterface, Ph
 
 #### Via live cycle hooks
 
+The simplest way to hook into the live cycle is to extend your controller from 
+your own base controller. You can do pre and post processing, log exceptions or 
+implement the  old style of controller handling, having many actions in one 
+controller.
 
+```php
+namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\AbstractController;
+use eArc\Router\Interfaces\RouterEventInterface;
+
+abstract class AbstractDeprecatedSyntaxController extends AbstractController
+{
+    public function process(RouterEventInterface $event) : void
+    {
+        $this->preProcessing($event);
+
+        try {
+            $actionId = $event->getRoute()->getParam(1);
+            $methodName = $actionId.'Action';
+            $this->$methodName($event);
+        } catch (\Exception $exception) {
+            $this->logException($exception);       
+        }
+
+        $this->postProcessing($event);
+    }
+    
+    protected function logException(\Exception $exception) {/*...*/}
+
+    protected function preProcessing(RouterEventInterface $event) {/*...*/}
+
+    protected function postProcessing(RouterEventInterface $event) {/*...*/}
+}
+```
+
+- **Pro**: It is simple and fast.
+- **Contra**: It is not flexible. For example if you have a core app and many client 
+apps extending the core app, there is not way the clients can change the flow. 
+Event such basic overwriting techniques as decoration or blacklisting can not be 
+applied to the base controller without decorating every single controller.
+
+Perhaps you know the open-closed-principle 
+([OCP](https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle)). As you have
+seen above inheritance is not suitable to implement OCP on a large scale. The
+program flow is not open for modification anymore. To overcome this earc/router
+exposes the calling of the listener/controller on the event tree.
+
+Extend your event tree root by a folder named `earc`, `earc/livecycle` and
+`earc/livecycle/router`. If you place in the last folder a class implementing
+the `ListenerInterface` and the `SortableListenerInterface` you can intercept
+the `RouterLiveCycleEvent`. Lets handle the above using the force of the event
+tree.
+
+We need to put three classes into the `earc/livecycle/router` folder:
+
+```php
+use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\Router\AbstractController;
+use eArc\Router\LiveCycle\RouterLiveCycleEvent;
+use eArc\Router\Interfaces\RouterEventInterface;
+
+class PreProcessingListener implements ListenerInterface, SortableListenerInterface
+{
+    public function process(EventInterface $event) : void
+    {
+        if ($event instanceof RouterLiveCycleEvent) {
+            $this->preProcessing($event->routerEvent);
+        }
+    }
+
+    protected function preProcessing(RouterEventInterface $event) {/*...*/}
+        
+    public static function getPatience() : float
+    {
+        return -1;
+    }
+}
+
+class PostProcessingListener implements ListenerInterface, SortableListenerInterface
+{
+    public function process(EventInterface $event) : void
+    {
+        if ($event instanceof RouterLiveCycleEvent) {
+            $this->postProcessing($event->routerEvent);
+        }
+    }
+      
+    protected function postProcessing(RouterEventInterface $event) {/*...*/}
+
+    public static function getPatience() : float
+    {
+      return 1;
+    }
+}
+
+class ExecuteCallListener implements ListenerInterface
+{
+    public function process(EventInterface $event) : void
+    {
+        if ($event instanceof RouterLiveCycleEvent) {
+            try {
+                $listener = $event->listenerCallable[0];
+                if (!$listener instanceof AbstractController) {
+                    call_user_func($event->listenerCallable, $event->routerEvent);
+                
+                    return;
+                }
+
+                $actionId = $event->routerEvent->getRoute()->getParam(1);
+                $methodName = $actionId.'Action';
+                $listener->$methodName($event->routerEvent);
+            } catch (\Exception $exception) {
+                $this->logException($exception);       
+            }
+        }
+    }
+    
+    protected function logException(\Exception $exception) {/*...*/}
+}
+```
+
+And last but not least we blacklist the original `ExecuteCallListener` in the
+configuration section. As the controllers should not be called twice.
+
+```php
+use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener;
+
+di_import_param(['earc' => ['event_tree' => ['blacklist' => [
+    ExecuteCallListener::class => true,
+]]]]);
+```
+
+Now our logic is open (for extension) and closed (for modification) on a app
+inheritance scale.
+
+If you prefer instead of blacklisting the `ExecuteCallListener` you can decorate
+him. 
+
+```php
+use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener as OriginECL;
+
+di_decorate(OriginECL::class, ExecuteCallListener::class);
+```
+Hint: In the case of decoration you have to place the decorating `ExecuteCallListener`
+outside the event tree.
 
 ### Customized events
 
@@ -306,25 +447,7 @@ Once you have written the action and middleware listeners, you can build and dis
 the event.
 
 
-## The action listeners
 
-Lets look at the URI `https://your-domain.de/admin/somestuff/edit/2342`.
-In frameworks like Symfony your route would be `admin/somestuff/` probably 
-calling the method `editAction` from the `SomeStuffController` class. Supplying
-`2342` as parameter. The eArc router handles it slightly different, but not 
-much:
-
-In your routing directory there is the `admin` subdirectory and therein the 
-`somestuff` directory with the `edit` directory. Obviously there will be no 
-`2342` directory. In the `edit` directory lives a listener. You can name it
-whatever you like, but it has to implement the Controller Interface.
-
-```php
-use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface;
-use eArc\Router\Interfaces\RouterListenerInterface;
-
-class MyFooListener implements 
-```  
 
 If you use the route somewhere you can use the `earc_route` function with the
 fully qualified controller class name as argument to retrieve it.

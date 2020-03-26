@@ -23,7 +23,7 @@ class ExecuteCallListener implements ListenerInterface
     public function process(EventInterface $event): void
     {
         if ($event instanceof RouterLiveCycleEvent) {
-            call_user_func($event->controllerCallable, $event->routerEvent);
+            call_user_func($event->listenerCallable, $event->routerEvent);
         }
     }
 }
