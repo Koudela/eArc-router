@@ -11,7 +11,6 @@
 
 namespace eArc\RouterTests\env;
 
-use eArc\Observer\Interfaces\EventInterface;
 use eArc\Router\AbstractController;
 use eArc\Router\Interfaces\RouterEventInterface;
 
@@ -20,14 +19,12 @@ class BaseController extends AbstractController
     /**
      * @inheritDoc
      */
-    public function process(EventInterface $event): void
+    public function process(RouterEventInterface $event): void
     {
         var_dump(static::class, get_class($event));
-        if ($event instanceof RouterEventInterface) {
-            /** @var Collector $collector */
-            $collector = di_get(Collector::class);
+        /** @var Collector $collector */
+        $collector = di_get(Collector::class);
 
-            $collector->calledListener[] = static::class;
-        }
+        $collector->calledListener[] = static::class;
     }
 }

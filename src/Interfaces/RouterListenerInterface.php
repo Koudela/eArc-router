@@ -11,15 +11,12 @@
 
 namespace eArc\Router\Interfaces;
 
-use eArc\Observer\Interfaces\EventInterface;
-use eArc\Observer\Interfaces\ListenerInterface;
-
-interface RouterListenerInterface extends ListenerInterface
+interface RouterListenerInterface
 {
     /**
      * Processes the router event.
      *
-     * @param RouterEventInterface|EventInterface $event
+     * @param RouterEventInterface $event
      */
-    public function process(EventInterface $event): void;
+    public function process(RouterEventInterface $event): void;
 }

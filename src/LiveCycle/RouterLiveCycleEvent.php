@@ -20,14 +20,14 @@ class RouterLiveCycleEvent extends TreeEvent
     /** @var RouterEventInterface */
     public $routerEvent;
 
-    /** @var callable [ControllerInterface, 'process'] */
-    public $controllerCallable;
+    /** @var callable [RouterListenerInterface, 'process'] */
+    public $listenerCallable;
 
     public function __construct(PropagationType $propagationType, RouterEventInterface $routerEvent, callable $controllerCallable)
     {
         parent::__construct($propagationType);
 
         $this->routerEvent = $routerEvent;
-        $this->controllerCallable = $controllerCallable;
+        $this->listenerCallable = $controllerCallable;
     }
 }
