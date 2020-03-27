@@ -10,11 +10,6 @@ Given this direct mapping between the url and the directory structure, understan
 the apps routing process is as simple as typing `tree` at the base of the routing 
 directory.
 
-The two immutable objects Route and Request are attached to the event the router 
-dispatches on the observer tree. Route decomposes an url path in parameters matching 
-the maximal path in the routing dir/observer tree (real arguments) and a the rest 
-(virtual arguments). Request supplies the information about the http request variables. 
-
 ## Table of contents
 
  - [Install](#install)
@@ -28,8 +23,15 @@ the maximal path in the routing dir/observer tree (real arguments) and a the res
         - [Via listeners attached to the route](#via-listeners-attached-to-the-route)
         - [Via live cycle hooks](#via-live-cycle-hooks)
     - [Customized events](#customized-events)
+        - [Subsystem handling](#subsystem-handling)
+        - [Runtime information handling](#runtime-information-handling)
+    - [Further decoupling](#further-decoupling)
     - [Customized routes](#customized-routes)
-
+ - [Further reading](#further-reading)
+ - [Releases](#releases)
+    - [Release 1.0](#release-10)
+    - [Release 0.1](#release-01) 
+ 
 ## Install
 
 ```
@@ -70,7 +72,7 @@ $event->dispatch();
 
 earc/router uses [earc/event-tree](https://github.com/Koudela/eArc-eventTree) to
 pass routing events to observers represented by the directory structure. You
-need an folder within your namespace that is the root for the event tree.
+need a folder within your namespace that is the root for the event tree.
 
 ```php
 di_import_param(['earc' => [
@@ -150,8 +152,8 @@ class Controller extends AbstractController
 }
 ```
 
-Since your controllers have all different Namespaces you can name them all
-controller. But it is recommended to name them in a more explicit way.
+Since your controllers all have different namespaces you can name them all
+`Controller`. But it is recommended to name them in a more explicit way.
  
 ### The router event
 
@@ -174,7 +176,7 @@ the controller logic. They can be divided into three cases.
 
 The first two cases can use the fact, that the earc/router uses the 
 [earc/event-tree](https://github.com/Koudela/eArc-eventTree) package. The route
-events travel from the routing folder to the targeted controller and can be
+events travel from the `routing` folder to the targeted controller and can be
 intercepted via listeners. 
 
 Lets start with the second case first.
@@ -222,10 +224,10 @@ all event trees have in common.
 
 Let us look at the second case now.
 
-You can put a listener in the same directory a the controller. It has to implement
+You can put a listener in the same directory as the controller. It has to implement
 the `SortableListenerInterface` in order to get called before or after the controller.
-And if it shall be called only if the route is targeting the controller the listener 
-it has to implement the `PhaseSpecificListenerInterface` too. 
+And if it shall be called only if the route is targeting the controller, the listener 
+has to implement the `PhaseSpecificListenerInterface` too. 
 
 ```php
 use eArc\EventTree\Transformation\ObserverTree;
@@ -296,13 +298,13 @@ abstract class AbstractDeprecatedSyntaxController extends AbstractController
 
 - **Pro**: It is simple and fast.
 - **Contra**: It is not flexible. For example if you have a core app and many client 
-apps extending the core app, there is not way the clients can change the flow. 
-Event such basic overwriting techniques as decoration or blacklisting can not be 
+apps extending the core app, there is no way the clients can change the flow. 
+Even such basic overwriting techniques as decoration or blacklisting can not be 
 applied to the base controller without decorating every single controller.
 
 Perhaps you know the open-closed-principle 
 ([OCP](https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle)). As you have
-seen above inheritance is not suitable to implement OCP on a large scale. The
+seen above inheritance is not suitable to follow the OCP on a large scale. The
 program flow is not open for modification anymore. To overcome this earc/router
 exposes the calling of the listener/controller on the event tree.
 
@@ -396,8 +398,9 @@ di_import_param(['earc' => ['event_tree' => ['blacklist' => [
 Now our logic is open (for extension) and closed (for modification) on a app
 inheritance scale.
 
-If you prefer instead of blacklisting the `ExecuteCallListener` you can decorate
-him. 
+Instead of blacklisting the `ExecuteCallListener` you can decorate
+him if you prefer. Note: Decoration can be done anywhere in the code prior to
+the call but blacklisting has to be done before the first event ist dispatched.  
 
 ```php
 use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener as OriginECL;
@@ -409,11 +412,145 @@ outside the event tree.
 
 ### Customized events
 
+#### Runtime information handling
 
+To keep your components decoupled the event should be the only place where 
+runtime information is kept (when a listener/controller has finished his work).
+As the runtime information is app specific it is part of your architectural
+responsibility to design your own events.
+
+Best practice is to use interfaces to describe the runtime information. Follow
+the interface segregation principle 
+([ISP](https://en.wikipedia.org/wiki/Interface_segregation_principle)). Design
+objects that implement the interface(s) and extend the `RouterEvent` to provide 
+these objects.
+
+```php
+use eArc\Router\RouterEvent;
+
+interface AppRuntimeInformationInterface
+{
+    public function getRunnerId(): int;
+    public function addWarning(Exception $exception);
+    public function getWarnings(): array;
+    public function getSession(): SessionInterface;
+    public function getCurrentUser() : ?UserInterface;
+    public function setCurrentUser(?UserInterface $user);
+}
+
+class AppRuntimeInformation implements AppRuntimeInformationInterface
+{
+    protected $runnerId;
+    protected $warnings = [];
+    protected $session;
+    protected $currentUser;
+
+    //...
+}
+
+class AppRouterEvent extends RouterEvent
+{
+    protected $runtimeInformation;
+
+    public function __construct(?string $uri = null,?string $requestMethod = null,?array $argv = null)
+    {
+        parent::__construct($uri,$requestMethod,$argv);
+
+        $this->runtimeInformation = di_get(AppRuntimeInformation::class);              
+    }
+
+    public function getRI(): AppRuntimeInformationInterface {/*...*/}
+}
+```
+
+Don't forget to replace the router event in your bootstrap section.
+
+```php
+$event = new AppRouterEvent();
+$event->dispatch();
+```
+
+Now all runtime information that has to be exchanged between your listener/controller 
+is exposed, easy to find and easy to understand.
+
+#### Subsystem handling
+
+If you need a router event that triggers only a subset of listener/controller,
+you can modify the `getApplicableListener()` method provided by the `EventInterface`.
+It returns an array of all listener interfaces that are called by the event.
+
+For example if a core app supports several versions you can use separate controller 
+for different versions this way. If a controller supports more than one 
+version it simply implements more than one listener interface. 
+
+Other use cases where this functionality comes handy: 
+- Some part of the app is only available in some country or to some language.
+- Some part of the app is only active in debug mode.
+- The app behaviour changes significantly for power users paying more money.
+- Different parts of the app can be toggled.
+
+### Further decoupling
+
+You can use both the event tree and the router tree (you can look at it as a 
+subset of the event tree) for a better decoupling of your code. Lets do one more
+example.
+
+Nearly all web apps do some sort of rendering. Rendering needs three things come
+together: The data, the template and the engine. The data does not change on behalf
+of visualisation, the template and the engine does.
+
+The controllers control the data generation and persistence mechanisms of your
+app, they should not control the visualisation layer, too. The underlying principle 
+is the famous single-responsibility principle 
+([SRP](https://en.wikipedia.org/wiki/Single-responsibility_principle)).
+
+Therefore it is a bad practice to inject a template engine into a controller or
+use a template annotation within. The controller should not know about these things.
+
+The route determines the controller and together with some parameter the data, 
+but in old fashioned frameworks like symfony it seems that it also determines the 
+template. That is not correct. I have seen uncountable examples where two 
+actions/routes do the same thing generating the same response data just to get access
+to different templates or return a json representation instead of a template 
+representation of the data. 
+
+Think of it a bit and you realize the different routes are just different presentation 
+parameters in these cases. Old fashioned MVCs does not support decoupling very well, so the 
+programmers need to get inventive in a bad way.
+
+How can we do better?
+
+Every controller returns data that is very specific. You shouldn't return it as array,
+you should return it as object. Once you have an object you have an identifier for
+the collection of templates the app can use. If there is more than one template
+available in this collection the representation parameter comes into play. Remember
+the parameters are part of the event, but the representation parameter is a valid 
+part of the returned data too - possibly transformed by the controller.
+
+Once the controller has processed there is the data and the keys to choose from
+the templates a single one. All attached to the event. That smells for post processing!
+
+After implementing these thoughts we can change the chosen template by just changing 
+the assignment of object class, representation parameter and template. If we want 
+to change the template engine, we just need to decorate one listener. We do not 
+need to change the code of all controllers or need to comply to an engine interface 
+that does not fit to our new use case.
+
+Hint: It might be a good idea to organize your templates in the same or similar
+directory structure as the returned objects. This way you reduce the configuration 
+overhead significantly. Note that this directory structure can be completely different
+from the routing directory structure.
 
 ### Customized routes
 
-Internationalization etc. 
+rewriting routes, rewrite routes in client systems, internationalization etc. 
+
+ask yourself
+- does the component perform processing in more than one step
+- is pre and post processing relevant or will be at some point in the future
+
+
+
 
 The router event is always build with an url, request method and variables. Thus 
 each router event instance is always bound to a valid request and can be easily 
@@ -434,20 +571,8 @@ $event->dispatch();
 
 
 
-Each controller action (as you may know from other frameworks) 
-is a listener of its own. In most use cases they listen to the event phase `EventRouter::PHASE_DESTINATION`. 
 Please note that the routing event tree shares its base directory with other event 
 trees.  
-
-Each middleware that hooks into the apps livecycle can be registered via an
-listener of its own. Middleware listens to the event phase 
-`EventRouter::PHASE_ACCESS` mainly.
-
-Once you have written the action and middleware listeners, you can build and dispatch
-the event.
-
-
-
 
 If you use the route somewhere you can use the `earc_route` function with the
 fully qualified controller class name as argument to retrieve it.
@@ -459,35 +584,34 @@ it up.
 
 ## Further reading 
 
-- Since the eArc/router is build on top of the [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
+- Since the earc/router is build on top of the [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
 please feel free to consult the earc/event-tree documentation.
 
-- To deepen the understanding of the power of this routing concept reading the 
-chapter about the access controllers in the  [earc/core manual](https://github.com/Koudela/eArc-core#the-access-controllers)
-might be a good idea. 
+- To take full advantage of the global container free dependency injection system
+[earc/di](https://github.com/Koudela/eArc-di) reading its documentation might 
+be a good idea. 
 
 ## Releases
 
-### release v1.0
+### Release 1.0
 
-- The route is now matched against an 
-[earc/event-tree](https://github.com/Koudela/eArc-eventTree) instead of a 
-directory tree.
+- The route is now matched against the `routing` part of an 
+[earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 - The dispatcher is now part of earc/router instead of earc/core and dispatches 
 an earc/event-tree event.
 - Introduces the immutable objects `Route` and `Request`. Both are attached as 
 payload to the dispatched earc/event-tree event.
-- There are no controllers anymore. Access- and main-controllers are now
-represented as earc/event-tree listeners.
+- There are no access and main-controllers anymore. Controllers are now
+disguised earc/event-tree listeners.
 - The router live cycle is exposed via an event tree. Making it easy to implement
-pre and post processing.
+pre and post processing while following the open-closed-principle on a large scale.
 
-### release v0.1
+### Release 0.1
 
-This is the first official release.
-
+The first official release.
 
 TODO:
-- composer
+- Documentation
+    - namespacing for example classes
 - Tests 
-- ParameterInterface
+- composer
