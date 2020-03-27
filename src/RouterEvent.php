@@ -11,9 +11,7 @@
 
 namespace eArc\Router;
 
-use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
-use eArc\Observer\Interfaces\ListenerInterface;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
 use eArc\Router\Interfaces\RouterListenerInterface;

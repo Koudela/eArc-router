@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - router component",
     "type": "library",
     "license": "MIT",
-    "version": "1.0-ALPHA",
+    "version": "1.0-RC",
     "authors": [
         {
             "name": "Thomas Koudela",
