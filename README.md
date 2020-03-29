@@ -488,6 +488,7 @@ Other use cases where this functionality comes handy:
 - Some part of the app is only active in debug mode.
 - The app behaviour changes significantly for power users paying more money.
 - Different parts of the app can be toggled.
+- Different phases of processing routes.
 
 ### Further decoupling
 
@@ -495,7 +496,7 @@ You can use both the event tree and the router tree (you can look at it as a
 subset of the event tree) for a better decoupling of your code. Lets do one more
 example.
 
-Nearly all web apps do some sort of rendering. Rendering needs three things come
+Nearly all web apps do some sort of rendering. Rendering need three things come
 together: The data, the template and the engine. The data does not change on behalf
 of visualisation, the template and the engine does.
 
@@ -524,7 +525,7 @@ Every controller returns data that is very specific. You shouldn't return it as 
 you should return it as object. Once you have an object you have an identifier for
 the collection of templates the app can use. If there is more than one template
 available in this collection the representation parameter comes into play. Remember
-the parameters are part of the event, but the representation parameter is a valid 
+the parameter are part of the event, but the representation parameter is a valid 
 part of the returned data too - possibly transformed by the controller.
 
 Once the controller has processed there is the data and the keys to choose from
@@ -543,14 +544,60 @@ from the routing directory structure.
 
 ### Customized routes
 
-rewriting routes, rewrite routes in client systems, internationalization etc. 
+#### Rewriting of routes
+
+There are several reasons for a route to change. Backward compatibility, customer 
+request or SEO are just three of it. On a app without routing tree inheritance it 
+is easy. Just rename and restructure the folders.
+
+If you need the same content under different routes you should use the `.redirect`
+directive of the earc/event-tree. It is just a file named `.redirect`. You can place
+it in every folder where redirection should take place. Every line is a redirection.
+At the beginning of the line you put the sub folder name you want to redirect 
+(it does not need to exist) and at second place separated by a blank you put the
+target path relative to the event trees root directory. `~/` is a shortcut to
+reference the current directory.
+
+To exclude an existing or inherited directory just leave the target empty. `.redirect`
+directives are part of the tree inheritance. If several `.redirect` directives
+of the same path exists naming the same sub folder the ordering of the 
+´earc.event_tree.directories´ is important. The directives are overwritten in
+the order their directory tree are registered. You can use the target shortcut `~` 
+to cancel an redirect. 
+
+```
+lama creatures/animals/fox #redirects events targeting the lama subfolder to creatures/animals/fox
+eagle ~/extinct/2351       #redirects events targeting the eagle subfolder to the extinct/2351 subfolder
+maple                      #hides the maple subdirectory from the events
+tiger ~                    #cancels all redirects for tiger made by the event trees inherited so far
+```
+
+For example the rewrite of the route `/imported/products` to `/products/imported` would
+take two steps (for each rewritten part one):
+
+1 ) Place into the `routing` directory the `.redirect` directive
+```
+products routing/imported
+imported
+```
+
+2 ) Place into the `imported` directory the `.redirect` directive
+```
+imported ~/products
+products
+``` 
+
+#### Mapping routes
+
+
+ internationalization etc. 
 
 ask yourself
 - does the component perform processing in more than one step
 - is pre and post processing relevant or will be at some point in the future
 
 
-
+ROUTING_EVENT_DIR
 
 The router event is always build with an url, request method and variables. Thus 
 each router event instance is always bound to a valid request and can be easily 
@@ -601,8 +648,8 @@ be a good idea.
 an earc/event-tree event.
 - Introduces the immutable objects `Route` and `Request`. Both are attached as 
 payload to the dispatched earc/event-tree event.
-- There are no access and main-controllers anymore. Controllers are now
-disguised earc/event-tree listeners.
+- There are no access and main-controller anymore. Controller are now
+disguised earc/event-tree listener.
 - The router live cycle is exposed via an event tree. Making it easy to implement
 pre and post processing while following the open-closed-principle on a large scale.
 
