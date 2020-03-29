@@ -1,9 +1,9 @@
-# eArc-router
+# earc Router
 
 This is the router component of the [earc framework](https://github.com/Koudela/eArc-core). 
 It also can be used within other frameworks or as standalone component.
 
-The earc router does not use any predefined routes - they are expressed via the 
+The earc router does not use any configured routes - they are expressed via the 
 filesystem which is transformed into an observer tree.
 
 Given this direct mapping between the url and the directory structure, understanding 
@@ -22,11 +22,17 @@ directory.
     - [Pre and post processing](#pre-and-post-processing)
         - [Via listeners attached to the route](#via-listeners-attached-to-the-route)
         - [Via live cycle hooks](#via-live-cycle-hooks)
+    - [Routing/event tree inheritance](#routingevent-tree-inheritance)
     - [Customized events](#customized-events)
         - [Subsystem handling](#subsystem-handling)
         - [Runtime information handling](#runtime-information-handling)
     - [Further decoupling](#further-decoupling)
     - [Customized routes](#customized-routes)
+        - [Rewriting of routes](#rewriting-of-routes)
+          - [The redirect directive](#the-redirect-directive)
+          - [The lookup directive](#the-lookup-directive)
+          - [The routing directory](#the-routing-directory)
+        -  [Mapping routes](#mapping-routes)
  - [Further reading](#further-reading)
  - [Releases](#releases)
     - [Release 1.0](#release-10)
@@ -76,11 +82,13 @@ need a folder within your namespace that is the root for the event tree.
 
 ```php
 di_import_param(['earc' => [
-    'vendor_directory' => '/path/to/your/vendor/dir',
+    // your configuration part (1):
+    'vendor_directory' => '/absolute/path/to/your/vendor/dir',
     'event_tree' => [
         'directories' => [
             'earc/router/earc-event-tree' => 'eArc\\RouterEventTreeRoot',
-            '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
+            // your configuration part (2):
+            '../path/to/your/eventTree/root/folder' => 'NamespaceOfYour\\EventTreeRoot',
         ]   
     ]
 ]]);
@@ -103,8 +111,8 @@ It is as easy as it can get.
  
 1. Go to the event tree root directory and make a new subdirectory `routing`.
 2. For every route make subdirectories for the fixed part and put a class at
-the end extending the `AbstractController`.
-3. Use the `process()` method and the passed `RouterEvent` to hook your controller
+the end extending the `eArc\Router\AbstractController`.
+3. Use the `process()` method and the passed `RouterEvent` to hook in your controller
 logic.
 
 ### The controller
@@ -121,15 +129,13 @@ the `routing/admin/user/edit` directory and another in the `routing/admin/user/a
 directory and the last in the `routing/admin/user/delete` directory. 
 
 The second is the recommended way. Since the routing mechanism does not support
-parametrized method calling and it forces the programmers to move business logic
-out of the controller. Nevertheless if you want to stick to the first way you can 
-implement it in an abstract `BaseController` extending the `AbstractController`. 
-You need only a few lines of code.
-
-Your controller have to extend the `AbstractController`.
+parametrized method calling out of the box, it forces the programmers to move 
+business logic out of the controller. Nevertheless if you want to stick to the 
+first way you can implement the logic in an abstract `BaseController` extending 
+the  `AbstractController`. You need only a few lines of code.
 
 ```php
-namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
 
 use eArc\Router\AbstractController;
 use eArc\Router\Interfaces\RouterEventInterface;
@@ -140,7 +146,7 @@ class Controller extends AbstractController
     {
         //... your controller code goes here
 
-        //... a very basic example without form processing
+        //... a very basic example without form processing:
 
         // the parameters are the route arguments that does not match a directory        
         $id = $event->getRoute()->getParam(1);
@@ -159,8 +165,9 @@ Since your controllers all have different namespaces you can name them all
 
 Every router event carries information about the request and the route. They are
 saved in a request immutable (access via `$event->getRequest()`) and a route 
-immutable (access via `$event->getRoute()`). For details consult the `RouteInformationInterface`
-and the `RequestInformationInterface`.
+immutable (access via `$event->getRoute()`). For details consult the 
+`eArc\Router\Interface\RouteInformationInterface` and the 
+`eArc\Router\Interface\RequestInformationInterface`.
 
 ## Advanced usage
 
@@ -174,22 +181,24 @@ the controller logic. They can be divided into three cases.
 
 #### Via listeners attached to the route
 
-The first two cases can use the fact, that the earc/router uses the 
-[earc/event-tree](https://github.com/Koudela/eArc-eventTree) package. The route
-events travel from the `routing` folder to the targeted controller and can be
-intercepted via listeners. 
+The first two cases can use the fact that the earc/router uses the earc/event-tree 
+package. The route events travel from the `routing` folder to the targeted controller 
+and can be intercepted via listeners. 
 
 Lets start with the second case first.
 
-The router event triggers all listeners that implement the `RouterListenerInterface`.
-Suppose you want to check the admin privileges for all routes starting with `/admin`.
-Simply put a class in the `routing/admin` folder that implements the 
-`RouterListenerInterface` and process the event analogue to the controller. You can
-even kill the event if it shall not reach any controller. Of course you can spawn
-a new one that routes to `/login` or `/error-pages/access-denied`.
+The router event triggers all listeners that implement the 
+`eArc\Router\Interface\RouterListenerInterface`. Suppose you want to check the 
+admin privileges for all routes starting with `/admin`. Simply put a class in 
+the `routing/admin` folder that implements the  `RouterListenerInterface` and 
+process the event analogue to the controller. You can even kill the event if it 
+shall not reach any controller. (For details consult the documentation of 
+[earc/event-tree](https://github.com/Koudela/eArc-eventTree).) Of course you can 
+spawn in the listener a new route that is targeting `/login` or 
+`/error-pages/access-denied`.
 
 ```php
-namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
 
 use eArc\Router\Interfaces\RouterListenerInterface;
 use eArc\Router\RouterEvent;
@@ -225,11 +234,14 @@ all event trees have in common.
 Let us look at the second case now.
 
 You can put a listener in the same directory as the controller. It has to implement
-the `SortableListenerInterface` in order to get called before or after the controller.
-And if it shall be called only if the route is targeting the controller, the listener 
-has to implement the `PhaseSpecificListenerInterface` too. 
+the `eArc\EventTree\Interfaces\SortableListenerInterface` in order to get called 
+before or after the controller. And if it shall be called only if the route is 
+targeting the controller, the listener has to implement the 
+`eArc\EventTree\Interfaces\PhaseSpecificListenerInterface` too. 
 
 ```php
+namespace NamespaceOfYour\EventTreeRoot\routing\some\route;
+
 use eArc\EventTree\Transformation\ObserverTree;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\Router\Interfaces\RouterListenerInterface;
@@ -258,15 +270,18 @@ class Listener implements RouterListenerInterface, SortableListenerInterface, Ph
 }
 ```
 
+To learn more of `patience` and event `phases` consult the documentation of
+the [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
+
 #### Via live cycle hooks
 
 The simplest way to hook into the live cycle is to extend your controller from 
 your own base controller. You can do pre and post processing, log exceptions or 
-implement the  old style of controller handling, having many actions in one 
+implement the old style of controller handling - having many actions in one 
 controller.
 
 ```php
-namespace NamespaceOfThe\EventTreeRoot\routing\admin\user\edit;
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
 
 use eArc\Router\AbstractController;
 use eArc\Router\Interfaces\RouterEventInterface;
@@ -302,21 +317,25 @@ apps extending the core app, there is no way the clients can change the flow.
 Even such basic overwriting techniques as decoration or blacklisting can not be 
 applied to the base controller without decorating every single controller.
 
-Perhaps you know the open-closed-principle 
-([OCP](https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle)). As you have
-seen above inheritance is not suitable to follow the OCP on a large scale. The
-program flow is not open for modification anymore. To overcome this earc/router
-exposes the calling of the listener/controller on the event tree.
+Perhaps you heard of the open-closed-principle 
+([OCP](https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle)) already. As 
+you have seen above inheritance is not suitable to follow the OCP on a large scale. 
+The program flow is not open for modification anymore. To overcome this earc/router
+exposes the calling of the listeners/controllers on the event tree.
 
 Extend your event tree root by a folder named `earc`, `earc/livecycle` and
 `earc/livecycle/router`. If you place in the last folder a class implementing
-the `ListenerInterface` and the `SortableListenerInterface` you can intercept
-the `RouterLiveCycleEvent`. Lets handle the above using the force of the event
-tree.
+the `eArc\EventTree\Interfaces\ListenerInterface` and the 
+`SeArc\EventTree\Interfaces\ortableListenerInterface` you can intercept the 
+`eArc\Router\LiveCycle\RouterLiveCycleEvent`. 
+
+Lets handle the above using the force of the event tree.
 
 We need to put three classes into the `earc/livecycle/router` folder:
 
 ```php
+namespace NamespaceOfYour\EventTreeRoot\earc\livecycle\router;
+
 use eArc\Observer\Interfaces\ListenerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\Observer\Interfaces\EventInterface;
@@ -403,12 +422,31 @@ him if you prefer. Note: Decoration can be done anywhere in the code prior to
 the call but blacklisting has to be done before the first event ist dispatched.  
 
 ```php
+use NamespaceOfYour\App\Somewhere\OutsideTheEventTree\ExecuteCallListener;;
 use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener as OriginECL;
 
 di_decorate(OriginECL::class, ExecuteCallListener::class);
 ```
+    
 Hint: In the case of decoration you have to place the decorating `ExecuteCallListener`
 outside the event tree.
+
+### Routing/event tree inheritance
+
+As you may have noticed, the original `ExecuteCallListener` lives outside of your
+event tree root directory as part of the vendor directory but is called by the event.
+This is what is called event tree inheritance. If you consult your configuration
+you will notice there are two `earc.event_tree.directories`. Yours and the 
+`earc/router/earc-event-tree`. If you take the two event trees an combine them
+at their roots you get the event tree that is actual used. You can combine as
+many trees as you want. A leaf exists if it exists in at least one tree.
+
+The routing part is combined too, not surprisingly though. It gives you the ability
+to define routes package wise. 
+
+Event tree inheritance is a mighty tool but can be confusing for beginners. You
+can use the `view-tree` command line tool to draw (and grep) a representation of
+the actual tree.
 
 ### Customized events
 
@@ -422,10 +460,12 @@ responsibility to design your own events.
 Best practice is to use interfaces to describe the runtime information. Follow
 the interface segregation principle 
 ([ISP](https://en.wikipedia.org/wiki/Interface_segregation_principle)). Design
-objects that implement the interface(s) and extend the `RouterEvent` to provide 
-these objects.
+objects that implement the interface(s) and extend the `eArc\Router\RouterEvent` 
+to provide these objects.
 
 ```php
+namespace NamespaceOfYour\App\Somewhere\OutsideTheEventTree;
+
 use eArc\Router\RouterEvent;
 
 interface AppRuntimeInformationInterface
@@ -470,12 +510,12 @@ $event = new AppRouterEvent();
 $event->dispatch();
 ```
 
-Now all runtime information that has to be exchanged between your listener/controller 
+Now all runtime information that has to be exchanged between your listeners/controllers 
 is exposed, easy to find and easy to understand.
 
 #### Subsystem handling
 
-If you need a router event that triggers only a subset of listener/controller,
+If you need a router event that triggers only a subset of listeners/controllers,
 you can modify the `getApplicableListener()` method provided by the `EventInterface`.
 It returns an array of all listener interfaces that are called by the event.
 
@@ -501,7 +541,7 @@ together: The data, the template and the engine. The data does not change on beh
 of visualisation, the template and the engine does.
 
 The controllers control the data generation and persistence mechanisms of your
-app, they should not control the visualisation layer, too. The underlying principle 
+app, they should not control the visualisation layer too. The underlying principle 
 is the famous single-responsibility principle 
 ([SRP](https://en.wikipedia.org/wiki/Single-responsibility_principle)).
 
@@ -510,14 +550,14 @@ use a template annotation within. The controller should not know about these thi
 
 The route determines the controller and together with some parameter the data, 
 but in old fashioned frameworks like symfony it seems that it also determines the 
-template. That is not correct. I have seen uncountable examples where two 
-actions/routes do the same thing generating the same response data just to get access
-to different templates or return a json representation instead of a template 
-representation of the data. 
+template. That is not correct and should not be the way you code. I have seen 
+uncountable examples where two actions/routes do the same thing generating the 
+same response data just to get access to different templates or return a json 
+representation instead of a template representation of the data. 
 
-Think of it a bit and you realize the different routes are just different presentation 
-parameters in these cases. Old fashioned MVCs does not support decoupling very well, so the 
-programmers need to get inventive in a bad way.
+Think of it a bit and you realize that the different routes are just different presentation 
+parameters in these cases. Old fashioned MVCs does not support decoupling very well, 
+so the programmers need to get inventive in a bad way.
 
 How can we do better?
 
@@ -547,8 +587,11 @@ from the routing directory structure.
 #### Rewriting of routes
 
 There are several reasons for a route to change. Backward compatibility, customer 
-request or SEO are just three of it. On a app without routing tree inheritance it 
-is easy. Just rename and restructure the folders.
+request or SEO are just three of it. On a app without routing tree inheritance 
+(event tree inheritance on the routing part) it is easy. Just rename and restructure 
+the folders.
+
+##### The redirect directive
 
 If you need the same content under different routes you should use the `.redirect`
 directive of the earc/event-tree. It is just a file named `.redirect`. You can place
@@ -559,7 +602,7 @@ target path relative to the event trees root directory. `~/` is a shortcut to
 reference the current directory.
 
 To exclude an existing or inherited directory just leave the target empty. `.redirect`
-directives are part of the tree inheritance. If several `.redirect` directives
+directives are part of the event tree inheritance. If several `.redirect` directives
 of the same path exists naming the same sub folder the ordering of the 
 ´earc.event_tree.directories´ is important. The directives are overwritten in
 the order their directory tree are registered. You can use the target shortcut `~` 
@@ -586,6 +629,48 @@ imported
 imported ~/products
 products
 ``` 
+Obviously using this you can not rely on the directory arguments of the route
+only on the parameters.
+
+To rewrite the base leafs put the `.redirect` directive into the event tree root.
+
+##### The lookup directive
+
+Every `.redirect` directive you use destroys a bit of the clarity the explicit
+design of the event tree gives to you. Therefore making massive use of the `.redirect` 
+directive is an anti pattern. If you need to redirect quite a bit of the tree
+it is better to rewrite it and use the `.lookup` directive to include the listeners
+of the old tree.
+
+Like the `.redirect` directive the `.lookup` directive is a plain text file. 
+If you put a path in there it will be included. That means every listener in the 
+linked leaf of the event tree will be handled as if it would reside in the current
+leaf. Every line is an separate include. The path has to be relative to the event
+tree root.
+
+##### The routing directory
+
+If you rewrite a routing tree it is a best practice to use a new routing directory.
+If you don't, you will need beside the `.lookup` directive (which is easy to understand)
+the `.redirect` directive (which can be far more confusing) to exclude unwanted 
+routing leafs. 
+
+To achieve this just decorate your routing events by a class extension that overwrites
+the constant `ROUTING_EVENT_TREE_DIR`. (It is not a parameter to make a variety of 
+routing directories in one app possible. Something you may need if you app spawns 
+more than one webside.)
+
+If you don't use a factory to create your router events you can use
+
+```php
+use eArc\Router\RouterEvent;
+
+$eventClass = di_static(RouterEvent::class);
+$event = new $eventClass(/*...*/);
+```
+
+to be able to decorate your event class by `di_decorate()`. (Consult the documentation
+of [earc/di](https://github.com/Koudela/eArc-di) for further information.)
 
 #### Mapping routes
 
@@ -596,8 +681,6 @@ ask yourself
 - does the component perform processing in more than one step
 - is pre and post processing relevant or will be at some point in the future
 
-
-ROUTING_EVENT_DIR
 
 The router event is always build with an url, request method and variables. Thus 
 each router event instance is always bound to a valid request and can be easily 
