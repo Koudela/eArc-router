@@ -29,40 +29,46 @@ class Route implements RouteInformationInterface
 
     /**
      * @param string $path
+     * @param string $routingEventTreeDir
      */
-    public function __construct(string $path)
+    public function __construct(string $path, string $routingEventTreeDir)
     {
         $this->path = $path;
 
-        $this->getRouteInformation();
+        $this->getRouteInformation($routingEventTreeDir);
     }
 
     /**
      * Calculate the route and route parameters.
      *
+     * @param string $routingEventTreeDir
+     *
      * @return void
      */
-    protected function getRouteInformation(): void
+    protected function getRouteInformation(string $routingEventTreeDir): void
     {
-        $path = 'routing';
+        /** @var CompositeDir $dirFactory */
+        $dirFactory = di_static(CompositeDir::class);
 
-        $this->virtualArgv = explode('/', '/'.trim($this->path, '/'));
+        $path =$routingEventTreeDir;
 
-        $param = array_shift($this->virtualArgv);
+        $this->params = explode('/', '/'.trim($this->path, '/'));
+
+        $param = array_shift($this->params);
 
         do
         {
             if ($param) {
                 $path .= '/' . $param;
 
-                $this->realArgv[] = $param;
+                $this->dirs[] = $param;
             }
 
-            if (empty(CompositeDir::getSubDirNames($path)))
+            if (empty($dirFactory::getSubDirNames($path)))
             {
                 break;
             }
         }
-        while ($param = array_shift($this->virtualArgv));
+        while ($param = array_shift($this->dirs));
     }
 }
