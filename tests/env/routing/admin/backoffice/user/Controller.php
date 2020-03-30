@@ -11,8 +11,22 @@
 
 namespace eArc\RouterTests\env\routing\admin\backoffice\user;
 
+use eArc\Router\Interfaces\RouterEventInterface;
 use eArc\RouterTests\env\BaseController;
+use eArc\RouterTests\env\Collector;
 
 class Controller extends BaseController
 {
+    public function process(RouterEventInterface $event): void
+    {
+        parent::process($event);
+
+        /** @var Collector $collector */
+        $collector = di_get(Collector::class);
+
+        $collector->payload = [
+            'route' => $event->getRoute(),
+            'request' => $event->getRequest(),
+        ];
+    }
 }

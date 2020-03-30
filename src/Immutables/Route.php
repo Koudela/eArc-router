@@ -69,6 +69,6 @@ class Route implements RouteInformationInterface
                 break;
             }
         }
-        while ($param = array_shift($this->dirs));
+        while ($param = array_shift($this->params));
     }
 }

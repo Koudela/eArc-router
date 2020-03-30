@@ -15,4 +15,7 @@ class Collector
 {
     /** @var string */
     public $calledListener = [];
+
+    /** @var mixed */
+    public $payload;
 }
