@@ -18,6 +18,7 @@ directory.
  - [Use](#use)
     - [The controller](#the-controller)
     - [The router event](#the-router-event)
+    - [Routes with special characters](#routes-with-special-characters)
  - [Advanced usage](#advanced-usage)
     - [Pre and post processing](#pre-and-post-processing)
         - [Via listeners attached to the route](#via-listeners-attached-to-the-route)
@@ -169,6 +170,23 @@ immutable (access via `$event->getRoute()`). For details consult the
 `eArc\Router\Interface\RouteInformationInterface` and the 
 `eArc\Router\Interface\RequestInformationInterface`.
 
+### Routes with special characters
+
+The namespace constrains on characters (especially not allowing `-`, `.` and `~`) 
+limits the usable route names. The fastest solution is to use the `.redirect` 
+directive of the earc/event-tree. Place a plain text file named `.redirect` in 
+the parent directory. Suppose you want to use the url `/spe~ci-al.chars` but you
+use the namespace compatible substitute `/special_characters`. Then put in the 
+`routing` directory the following file:
+
+```
+spe~ci-al.chars ~/special_characters
+special_characters
+``` 
+
+The `.redirect` directive is explained in the 
+[The redirect directive](#the-redirect-directive) section in detail.
+
 ## Advanced usage
 
 ### Pre and post processing 
@@ -217,7 +235,7 @@ class Listener implements RouterListenerInterface
         // ...
         // the user has no admin privileges
         $event->getHandler()->kill();
-        (new RouterEvent('/error-pages/access-denied'))->dispatch();
+        (new RouterEvent('/error-pages/access-denied', 'GET'))->dispatch();
         //...
     }
 }

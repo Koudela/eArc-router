@@ -11,7 +11,9 @@
 
 namespace eArc\Router\Immutables;
 
+use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Util\CompositeDir;
+use eArc\EventTree\Util\DirectiveReader;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Traits\RouteInformationTrait;
 
@@ -36,6 +38,8 @@ class Route implements RouteInformationInterface
         $this->path = $path;
 
         $this->getRouteInformation($routingEventTreeDir);
+        var_dump($this->path);
+        var_dump($this->dirs);
     }
 
     /**
@@ -49,8 +53,10 @@ class Route implements RouteInformationInterface
     {
         /** @var CompositeDir $dirFactory */
         $dirFactory = di_static(CompositeDir::class);
+        /** @var DirectiveReader $directiveReader */
+        $directiveReader = di_static(DirectiveReader::class);
 
-        $path =$routingEventTreeDir;
+        $path = $routingEventTreeDir;
 
         $this->params = explode('/', '/'.trim($this->path, '/'));
 
@@ -59,7 +65,11 @@ class Route implements RouteInformationInterface
         do
         {
             if ($param) {
-                $path .= '/' . $param;
+                try {
+                    $path = $directiveReader::getRedirect($path)->getPathForLeaf($param);
+                } catch (InvalidObserverNodeException $exception) {
+                    $path .= '/'.$param;
+                }
 
                 $this->dirs[] = $param;
             }
