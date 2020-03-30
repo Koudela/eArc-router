@@ -13,11 +13,13 @@ namespace eArc\RouterTests;
 
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
+use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\RouterEvent;
 use eArc\RouterTests\env\Collector;
+use Exception;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,6 +38,9 @@ class RouterTest extends TestCase
     {
         $this->bootstrap();
         $this->runUseAssertions();
+        $this->runSpecialCharactersAssertions();
+        $this->runRerouteAssertions();
+        $this->runLiveCycleHooksAssertions();
         $this->runSomeAssertions();
     }
 
@@ -85,18 +90,72 @@ class RouterTest extends TestCase
         $this->assertTrue($collector->payload['request'] instanceof RequestInformationInterface);
     }
 
+    /**
+     * @throws IsDispatchedException
+     */
+    protected function runSpecialCharactersAssertions()
+    {
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
+        $event = new RouterEvent('/special_characters', 'GET');
+        try {
+            $event->dispatch();
+            $this->assertTrue(false);
+        } catch (Exception $exception) {
+            $this->assertTrue($exception instanceof InvalidObserverNodeException);
+        }
+
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
+        $event = new RouterEvent('/spe~ci-al.chars', 'GET');
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\RouterTests\\env\\routing\\ListenerStart',
+            'eArc\\RouterTests\\env\\routing\\special_characters\\Controller',
+        ], $collector->calledListener);
+    }
+
+    /**
+     * @throws IsDispatchedException
+     */
+    protected function runRerouteAssertions()
+    {
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
+        $event = new RouterEvent('/login', 'GET');
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\RouterTests\\env\\routing\\ListenerStart',
+            'eArc\\RouterTests\\env\\routing\\login\\Controller',
+            'eArc\\RouterTests\\env\\routing\\ListenerStart',
+            'eArc\\RouterTests\\env\\routing\\error_pages\\access_denied\\Controller',
+        ], $collector->calledListener);
+    }
+
+    /**
+     * @throws IsDispatchedException
+     */
+    protected function runLiveCycleHooksAssertions()
+    {
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
+        $event = new RouterEvent('/login', 'GET');
+        $event->dispatch();
+        $this->assertEquals([
+        ], $collector->calledListener);
+    }
+
+    /**
+     * @throws IsDispatchedException
+     */
     protected function runSomeAssertions()
     {
         $collector = new Collector();
         di_mock(Collector::class, $collector);
-        $event = new RouterEvent('', 'GET');
+        $event = new RouterEvent('/login', 'GET');
         $event->dispatch();
-        var_dump($collector->calledListener);
-
-        $collector = new Collector();
-        di_mock(Collector::class, $collector);
-        $event = new RouterEvent('/', 'GET');
-        $event->dispatch();
-        var_dump($collector->calledListener);
+        $this->assertEquals([
+        ], $collector->calledListener);
     }
+
 }
