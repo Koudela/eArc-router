@@ -14,6 +14,8 @@ namespace eArc\RouterTests;
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\Router\Interfaces\RequestInformationInterface;
+use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\RouterEvent;
 use eArc\RouterTests\env\Collector;
 use PHPUnit\Framework\TestCase;
@@ -33,6 +35,7 @@ class RouterTest extends TestCase
     public function testIntegration()
     {
         $this->bootstrap();
+        $this->runUseAssertions();
         $this->runSomeAssertions();
     }
 
@@ -65,7 +68,7 @@ class RouterTest extends TestCase
     /**
      * @throws IsDispatchedException
      */
-    protected function runSomeAssertions()
+    protected function runUseAssertions()
     {
         di_clear_cache();
 
@@ -73,8 +76,17 @@ class RouterTest extends TestCase
         di_mock(Collector::class, $collector);
         $event = new RouterEvent('/admin/backoffice/user/edit/1', 'GET');
         $event->dispatch();
-        var_dump($collector->calledListener);
+        $this->assertEquals([
+            'eArc\\RouterTests\\env\\routing\\ListenerStart',
+            'eArc\\RouterTests\\env\\routing\\admin\\ListenerBefore',
+            'eArc\\RouterTests\\env\\routing\\admin\\backoffice\\user\\Controller',
+        ], $collector->calledListener);
+        $this->assertTrue($collector->payload['route'] instanceof RouteInformationInterface);
+        $this->assertTrue($collector->payload['request'] instanceof RequestInformationInterface);
+    }
 
+    protected function runSomeAssertions()
+    {
         $collector = new Collector();
         di_mock(Collector::class, $collector);
         $event = new RouterEvent('', 'GET');

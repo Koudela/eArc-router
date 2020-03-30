@@ -742,6 +742,5 @@ The first official release.
 
 TODO:
 - Documentation
-    - namespacing for example classes
 - Tests 
 - composer
