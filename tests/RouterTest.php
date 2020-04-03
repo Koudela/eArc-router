@@ -40,8 +40,9 @@ class RouterTest extends TestCase
         $this->runUseAssertions();
         $this->runSpecialCharactersAssertions();
         $this->runRerouteAssertions();
-        $this->runLiveCycleHooksAssertions();
-        $this->runSomeAssertions();
+        //$this->runLiveCycleHooksAssertions();
+        //$this->runRoutingDirectoryAssertions();
+        //$this->runSerializingAssertions();
     }
 
     /**
@@ -148,7 +149,20 @@ class RouterTest extends TestCase
     /**
      * @throws IsDispatchedException
      */
-    protected function runSomeAssertions()
+    protected function runRoutingDirectoryAssertions()
+    {
+        $collector = new Collector();
+        di_mock(Collector::class, $collector);
+        $event = new RouterEvent('/login', 'GET');
+        $event->dispatch();
+        $this->assertEquals([
+        ], $collector->calledListener);
+    }
+
+    /**
+     * @throws IsDispatchedException
+     */
+    protected function runSerializingAssertions()
     {
         $collector = new Collector();
         di_mock(Collector::class, $collector);

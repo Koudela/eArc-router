@@ -12,43 +12,19 @@
 namespace eArc\Router\Service;
 
 use eArc\EventTree\Interfaces\ParameterInterface;
-use eArc\Router\Exceptions\IsBlacklistedException;
-use eArc\Router\Exceptions\NoRouteException;
 
 class RouterService implements ParameterInterface
 {
-    /**
-     * @param string $fQCN
-     * @param string[] $argv
-     *
-     * @return string
-     *
-     * @throws NoRouteException
-     * @throws IsBlacklistedException
-     */
-    public static function getRoute(string $fQCN, array $argv = []): string
+    const ROUTING_EVENT_TREE_DEFAULT_DIR = 'routing';
+
+    public static function getRoutingDir(string $fQCNEvent): string
     {
-        $blacklist = di_param(ParameterInterface::BLACKLIST);
-
-        if (isset($blacklist[$fQCN])) {
-            throw new IsBlacklistedException(sprintf('%s is blacklisted', $fQCN));
-        }
-
-        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $path => $namespace)
-        {
-            if (0 === strpos($fQCN, $namespace.'\\routing')) {
-                $folders = explode('\\', substr($fQCN, strlen($namespace.'\\routing\\')));
-
-                if (0 === count($folders)) {
-                    return '/'.implode('/', $argv);
-                }
-
-                array_pop($folders);
-
-                return implode('/', $folders).'/'.implode('/', $argv);
+        foreach (di_param('earc.router.routing_dir', []) as $fQCN => $dir) {
+            if (is_a($fQCN, $fQCNEvent, true)) {
+                return $dir;
             }
         }
 
-        throw new NoRouteException(sprintf('%s is no valid fully qualified controller class name.', $fQCN));
+        return RouterService::ROUTING_EVENT_TREE_DEFAULT_DIR;
     }
 }
