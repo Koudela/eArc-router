@@ -19,11 +19,10 @@ use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Interfaces\RouterEventInterface;
 use eArc\Router\LiveCycle\RouterLiveCyclePropagationType;
+use eArc\Router\Service\RouterService;
 
 class RouterEvent extends TreeEvent implements RouterEventInterface
 {
-    const ROUTING_EVENT_TREE_DIR = 'routing';
-
     /** @var RequestInformationInterface */
     protected $request;
 
@@ -33,13 +32,14 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
     public function __construct(?string $uri = null, ?string $requestMethod = null, ?array $argv = null)
     {
         $path = preg_replace(['#.*//[^/]+#', '#\?.*#'], ['', ''], $uri ?? $_SERVER['REQUEST_URI']);
+        $routingDir = RouterService::getRoutingDir(RouterEvent::class);
 
-        $this->route = new Route($path, static::ROUTING_EVENT_TREE_DIR);
+        $this->route = new Route($path, $routingDir);
 
         $this->request = new Request($requestMethod, $argv);
 
         parent::__construct(new RouterLiveCyclePropagationType(
-            [static::ROUTING_EVENT_TREE_DIR],
+            [$routingDir],
             $this->route->getDirs(),
             0
         ));
