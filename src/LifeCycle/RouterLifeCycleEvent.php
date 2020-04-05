@@ -9,13 +9,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router\LiveCycle;
+namespace eArc\Router\LifeCycle;
 
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTree\TreeEvent;
 use eArc\Router\Interfaces\RouterEventInterface;
 
-class RouterLiveCycleEvent extends TreeEvent
+class RouterLifeCycleEvent extends TreeEvent
 {
     /** @var RouterEventInterface */
     public $routerEvent;

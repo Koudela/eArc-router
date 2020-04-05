@@ -59,7 +59,7 @@ trait RouteInformationTrait
      */
     public function getParam(int $pos): ?string
     {
-        return isset($this->param[$pos]) ? $this->params[$pos] : null;
+        return isset($this->params[$pos]) ? $this->params[$pos] : null;
     }
 
     /**

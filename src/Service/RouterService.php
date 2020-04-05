@@ -19,8 +19,8 @@ class RouterService implements ParameterInterface
 
     public static function getRoutingDir(string $fQCNEvent): string
     {
-        foreach (di_param('earc.router.routing_dir', []) as $fQCN => $dir) {
-            if (is_a($fQCN, $fQCNEvent, true)) {
+        foreach (di_param('earc.router.routing_directory', []) as $fQCN => $dir) {
+            if (is_a($fQCNEvent, $fQCN, true)) {
                 return $dir;
             }
         }

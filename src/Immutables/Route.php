@@ -38,8 +38,6 @@ class Route implements RouteInformationInterface
         $this->path = $path;
 
         $this->getRouteInformation($routingEventTreeDir);
-        var_dump($this->path);
-        var_dump($this->dirs);
     }
 
     /**

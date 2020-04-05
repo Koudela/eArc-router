@@ -21,7 +21,6 @@ class BaseController extends AbstractController
      */
     public function process(RouterEventInterface $event): void
     {
-        var_dump("static: ".static::class.", ".get_class($event));
         /** @var Collector $collector */
         $collector = di_get(Collector::class);
 

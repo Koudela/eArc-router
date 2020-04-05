@@ -9,16 +9,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\RouterTests\env;
+namespace eArc\RouterTests\env\routing\lifecycle;
 
-class Collector
+use eArc\RouterTests\env\BaseListener;
+
+class Listener extends BaseListener
 {
-    /** @var string[] */
-    public $calledListener = [];
-
-    /** @var string[] */
-    public $calledMethods = [];
-
-    /** @var mixed */
-    public $payload;
 }
