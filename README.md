@@ -148,7 +148,7 @@ class Controller extends AbstractController
         //... a very basic example without form processing:
 
         // the parameters are the route arguments that does not match a directory        
-        $id = $event->getRoute()->getParam(1);
+        $id = $event->getRoute()->getParam(0);
         // if you use doctrine the next step could look like this
         $user = di_get(UserRepository::class)->find($id);
         // calling some third party rendering engine    
@@ -358,7 +358,7 @@ abstract class AbstractDeprecatedSyntaxController extends AbstractController
         $this->preProcessing($event);
 
         try {
-            $actionId = $event->getRoute()->getParam(1);
+            $actionId = $event->getRoute()->getParam(0);
             $methodName = $actionId.'Action';
             $this->$methodName($event);
         } catch (\Exception $exception) {
@@ -388,30 +388,30 @@ you have seen above inheritance is not suitable to follow the OCP on a large sca
 The program flow is not open for modification anymore. To overcome this earc/router
 exposes the calling of the listeners/controllers on the event tree.
 
-Extend your event tree root by a folder named `earc`, `earc/livecycle` and
-`earc/livecycle/router`. If you place in the last folder a class implementing
+Extend your event tree root by a folder named `earc`, `earc/lifecycle` and
+`earc/lifecycle/router`. If you place in the last folder a class implementing
 the `eArc\EventTree\Interfaces\ListenerInterface` you can intercept the 
-`eArc\Router\LiveCycle\RouterLiveCycleEvent`. 
+`eArc\Router\LifeCycle\RouterLifeCycleEvent`. 
 
 Lets do the above example again using the force of the event tree.
 
-We need to put three classes into the `earc/livecycle/router` folder:
+We need to put three classes into the `earc/lifecycle/router` folder:
 
 ```php
-namespace NamespaceOfYour\EventTreeRoot\earc\livecycle\router;
+namespace NamespaceOfYour\EventTreeRoot\earc\lifecycle\router;
 
 use eArc\Observer\Interfaces\ListenerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\Observer\Interfaces\EventInterface;
 use eArc\Router\AbstractController;
-use eArc\Router\LiveCycle\RouterLiveCycleEvent;
+use eArc\Router\LifeCycle\RouterLifeCycleEvent;
 use eArc\Router\Interfaces\RouterEventInterface;
 
 class PreProcessingListener implements ListenerInterface, SortableListenerInterface
 {
     public function process(EventInterface $event) : void
     {
-        if ($event instanceof RouterLiveCycleEvent) {
+        if ($event instanceof RouterLifeCycleEvent) {
             $this->preProcessing($event->routerEvent);
         }
     }
@@ -428,7 +428,7 @@ class PostProcessingListener implements ListenerInterface, SortableListenerInter
 {
     public function process(EventInterface $event) : void
     {
-        if ($event instanceof RouterLiveCycleEvent) {
+        if ($event instanceof RouterLifeCycleEvent) {
             $this->postProcessing($event->routerEvent);
         }
     }
@@ -445,7 +445,7 @@ class ExecuteCallListener implements ListenerInterface
 {
     public function process(EventInterface $event) : void
     {
-        if ($event instanceof RouterLiveCycleEvent) {
+        if ($event instanceof RouterLifeCycleEvent) {
             try {
                 $listener = $event->listenerCallable[0];
                 if (!$listener instanceof AbstractController) {
@@ -454,7 +454,7 @@ class ExecuteCallListener implements ListenerInterface
                     return;
                 }
 
-                $actionId = $event->routerEvent->getRoute()->getParam(1);
+                $actionId = $event->routerEvent->getRoute()->getParam(0);
                 $methodName = $actionId.'Action';
                 $listener->$methodName($event->routerEvent);
             } catch (\Exception $exception) {
@@ -471,7 +471,7 @@ And last but not least we blacklist the original `ExecuteCallListener` in the
 configuration section. As the controllers should not be called twice.
 
 ```php
-use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener;
+use eArc\RouterEventTreeRoot\earc\lifecycle\router\ExecuteCallListener;
 
 di_import_param(['earc' => ['event_tree' => ['blacklist' => [
     ExecuteCallListener::class => true,
@@ -485,7 +485,7 @@ Instead of blacklisting the `ExecuteCallListener` you can decorate
 him if you prefer. 
 ```php
 use NamespaceOfYour\App\Somewhere\OutsideTheEventTree\ExecuteCallListener;
-use eArc\RouterEventTreeRoot\earc\livecycle\router\ExecuteCallListener as OriginECL;
+use eArc\RouterEventTreeRoot\earc\lifecycle\router\ExecuteCallListener as OriginECL;
 
 di_decorate(OriginECL::class, ExecuteCallListener::class);
 ```
@@ -722,18 +722,20 @@ routing leafs.
 To achieve this just configure a new routing dir for your routing event. 
 
 ```php
+use eArc\Router\Interfaces\RouterEventInterface;
+
 di_import_param(['earc' => [
     'router' => [
-        'routing_dir' => [
-            'eArc\\Router\\Interfaces\\RouterEventInterface' => 'new/routing'
+        'routing_directory' => [
+            RouterEventInterface::class => 'v2/routing'
         ]   
     ]
 ]]);
 ```
 
 You can define different routing directories for different events. The first key
-the event is a instance of defines the routing directory. If none matches the 
-routing directory is `routing`. 
+the event passes an `instanceof` check against defines the routing directory. If 
+none passes the routing directory is `routing`. 
 
 #### Mapping routes
 
@@ -783,8 +785,3 @@ pre and post processing while following the open-closed-principle on a large sca
 ### Release 0.1
 
 The first official release.
-
-TODO:
-- Tests 
-    - ROUTING_EVENT_TREE_DIR as parameter (`routing` is fallback)
-- composer

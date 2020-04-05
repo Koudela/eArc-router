@@ -9,14 +9,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\Router\LiveCycle;
+namespace eArc\RouterTests\env\routing\serialize\hit;
 
-use eArc\EventTree\Propagation\PropagationType;
+use eArc\RouterTests\env\BaseController;
 
-class RouterLiveCyclePropagationType extends PropagationType
+class Controller extends  BaseController
 {
-    protected function initDispatcher()
-    {
-        $this->dispatcher = di_get(RouterEventDispatcher::class);
-    }
 }

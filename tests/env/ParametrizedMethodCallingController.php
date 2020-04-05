@@ -11,14 +11,6 @@
 
 namespace eArc\RouterTests\env;
 
-class Collector
+abstract class ParametrizedMethodCallingController extends BaseController
 {
-    /** @var string[] */
-    public $calledListener = [];
-
-    /** @var string[] */
-    public $calledMethods = [];
-
-    /** @var mixed */
-    public $payload;
 }

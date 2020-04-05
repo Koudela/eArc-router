@@ -9,11 +9,11 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\RouterEventTreeRoot\earc\livecycle\router;
+namespace eArc\RouterEventTreeRoot\earc\lifecycle\router;
 
 use eArc\Observer\Interfaces\EventInterface;
 use eArc\Observer\Interfaces\ListenerInterface;
-use eArc\Router\LiveCycle\RouterLiveCycleEvent;
+use eArc\Router\LifeCycle\RouterLifeCycleEvent;
 
 class ExecuteCallListener implements ListenerInterface
 {
@@ -22,7 +22,7 @@ class ExecuteCallListener implements ListenerInterface
      */
     public function process(EventInterface $event): void
     {
-        if ($event instanceof RouterLiveCycleEvent) {
+        if ($event instanceof RouterLifeCycleEvent) {
             call_user_func($event->listenerCallable, $event->routerEvent);
         }
     }

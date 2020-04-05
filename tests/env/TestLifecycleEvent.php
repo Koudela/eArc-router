@@ -11,14 +11,8 @@
 
 namespace eArc\RouterTests\env;
 
-class Collector
+use eArc\Router\RouterEvent;
+
+class TestLifecycleEvent extends RouterEvent
 {
-    /** @var string[] */
-    public $calledListener = [];
-
-    /** @var string[] */
-    public $calledMethods = [];
-
-    /** @var mixed */
-    public $payload;
 }
