@@ -1,10 +1,10 @@
 <?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
- * event tree component
+ * router component
  *
- * @package earc/event-tree
- * @link https://github.com/Koudela/eArc-eventTree/
+ * @package earc/router
+ * @link https://github.com/Koudela/earc-router/
  * @copyright Copyright (c) 2018-2020 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */

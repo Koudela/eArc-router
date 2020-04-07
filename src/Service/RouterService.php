@@ -11,7 +11,7 @@
 
 namespace eArc\Router\Service;
 
-use eArc\EventTree\Interfaces\ParameterInterface;
+use eArc\Router\Interfaces\ParameterInterface;
 
 class RouterService implements ParameterInterface
 {
@@ -19,7 +19,7 @@ class RouterService implements ParameterInterface
 
     public static function getRoutingDir(string $fQCNEvent): string
     {
-        foreach (di_param('earc.router.routing_directory', []) as $fQCN => $dir) {
+        foreach (di_param(ParameterInterface::ROUTING_DIR, []) as $fQCN => $dir) {
             if (is_a($fQCNEvent, $fQCN, true)) {
                 return $dir;
             }
