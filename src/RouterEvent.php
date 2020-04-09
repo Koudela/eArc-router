@@ -31,7 +31,7 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
     public function __construct(?string $uri = null, ?string $requestMethod = null, ?array $argv = null)
     {
-        $path = preg_replace(['#.*//[^/]+#', '#\?.*#'], ['', ''], $uri ?? $_SERVER['REQUEST_URI']);
+        $path = preg_replace(['#.*://[^/]+#', '#\?.*#'], ['', ''], $uri ?? $_SERVER['REQUEST_URI']);
         $routingDir = RouterService::getRoutingDir(RouterEvent::class);
         $this->route = new Route($path, $routingDir);
 
