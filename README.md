@@ -36,6 +36,7 @@ directory.
     - [Serializing events](#serializing-events)
  - [Further reading](#further-reading)
  - [Releases](#releases)
+    - [Release 1.1](#release-11)
     - [Release 1.0](#release-10)
     - [Release 0.1](#release-01) 
  
@@ -768,6 +769,11 @@ please feel free to consult the earc/event-tree documentation.
 be a good idea. 
 
 ## Releases
+
+### Release 1.1
+
+- `RequestInformationInterface::getArg()` and `RouteInformationInterface::getParam()`
+now accept a default parameter
 
 ### Release 1.0
 

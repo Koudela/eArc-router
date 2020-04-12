@@ -57,9 +57,9 @@ trait RouteInformationTrait
     /**
      * @inheritdoc
      */
-    public function getParam(int $pos): ?string
+    public function getParam(int $pos, ?string $default = null): ?string
     {
-        return isset($this->params[$pos]) ? $this->params[$pos] : null;
+        return isset($this->params[$pos]) ? $this->params[$pos] : $default;
     }
 
     /**

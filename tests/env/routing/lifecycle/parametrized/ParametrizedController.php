@@ -12,7 +12,6 @@ class ParametrizedController extends ParametrizedMethodCallingController
 {
     public function testAction(RouterEventInterface $event): void
     {
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
 
         $collector->calledListener[] = static::class;

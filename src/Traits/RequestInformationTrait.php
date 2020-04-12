@@ -41,9 +41,9 @@ trait RequestInformationTrait
     /**
      * @inheritdoc
      */
-    public function getArg(string $name)
+    public function getArg(string $name, $default = null)
     {
-        return $this->argv[$name];
+        return $this->hasArg($this->argv[$name]) ? $this->argv[$name] : $default;
     }
 
     /**

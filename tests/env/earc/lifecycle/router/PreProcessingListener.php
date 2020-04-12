@@ -25,7 +25,6 @@ class PreProcessingListener implements ListenerInterface, SortableListenerInterf
     {
         if ($event instanceof RouterLifeCycleEvent) {
             if ($event->routerEvent instanceof TestLifecycleEvent) {
-                /** @var Collector $collector */
                 $collector = di_get(Collector::class);
                 $collector->calledListener[] = static::class;
 
@@ -36,7 +35,6 @@ class PreProcessingListener implements ListenerInterface, SortableListenerInterf
 
     protected function preProcessing(RouterEventInterface $event)
     {
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
         $collector->calledMethods[] = 'preProcessing('.get_class($event).')';
     }

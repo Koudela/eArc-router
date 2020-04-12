@@ -21,7 +21,6 @@ class BaseListener implements RouterListenerInterface
      */
     public function process(RouterEventInterface $event): void
     {
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
 
         $collector->calledListener[] = static::class;

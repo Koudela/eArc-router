@@ -37,13 +37,15 @@ interface RequestInformationInterface
     public function hasArg(string $name): bool;
 
     /**
-     * Get the request variable by its name.
+     * Get the request variable by its name. Returns the $default vale if the
+     * request variable does not exist.
      *
      * @param string $name
+     * @param mixed  $default
      *
-     * @return string
+     * @return mixed
      */
-    public function getArg(string $name);
+    public function getArg(string $name, $default = null);
 
     /**
      * Get the request variables.

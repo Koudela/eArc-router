@@ -49,9 +49,7 @@ class Route implements RouteInformationInterface
      */
     protected function getRouteInformation(string $routingEventTreeDir): void
     {
-        /** @var CompositeDir $dirFactory */
         $dirFactory = di_static(CompositeDir::class);
-        /** @var DirectiveReader $directiveReader */
         $directiveReader = di_static(DirectiveReader::class);
 
         $path = $routingEventTreeDir;

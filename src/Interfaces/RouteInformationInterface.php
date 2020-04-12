@@ -50,14 +50,15 @@ interface RouteInformationInterface
     public function cntParams(): int;
 
     /**
-     * Get the arg at position $pos not related to the Controller path or null
-     * if there is no arg at position $pos.
+     * Get the arg at position $pos not related to the Controller path. Returns
+     * the $default value if there is no arg at position $pos.
      *
-     * @param integer $pos
+     * @param integer     $pos
+     * @param string|null $default
      *
      * @return string|null
      */
-    public function getParam(int $pos): ?string;
+    public function getParam(int $pos, ?string $default = null): ?string;
 
     /**
      * Get a copy of the args not related to the Controller path

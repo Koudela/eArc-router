@@ -25,7 +25,6 @@ class ExecuteCallListener implements ListenerInterface
     {
         if ($event instanceof RouterLifeCycleEvent) {
             if ($event->routerEvent instanceof TestLifecycleEvent) {
-                /** @var Collector $collector */
                 $collector = di_get(Collector::class);
                 $collector->calledListener[] = static::class;
 
@@ -48,7 +47,6 @@ class ExecuteCallListener implements ListenerInterface
 
     protected function logException(Exception $exception)
     {
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
         $collector->calledMethods[] = 'logException('.$exception->getMessage().')';
     }

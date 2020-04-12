@@ -25,7 +25,6 @@ class PostProcessingListener implements ListenerInterface, SortableListenerInter
     {
         if ($event instanceof RouterLifeCycleEvent) {
             if ($event->routerEvent instanceof TestLifecycleEvent) {
-                /** @var Collector $collector */
                 $collector = di_get(Collector::class);
                 $collector->calledListener[] = static::class;
 
@@ -38,7 +37,6 @@ class PostProcessingListener implements ListenerInterface, SortableListenerInter
 
     protected function postProcessing(RouterEventInterface $event)
     {
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
         $collector->calledMethods[] = 'postProcessing('.get_class($event).')';
     }

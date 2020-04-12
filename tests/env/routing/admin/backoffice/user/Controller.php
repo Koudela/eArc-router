@@ -21,7 +21,6 @@ class Controller extends BaseController
     {
         parent::process($event);
 
-        /** @var Collector $collector */
         $collector = di_get(Collector::class);
 
         $collector->payload = [
