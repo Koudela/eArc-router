@@ -58,8 +58,7 @@ class Route implements RouteInformationInterface
 
         $param = array_shift($this->params);
 
-        do
-        {
+        do {
             if ($param) {
                 try {
                     $path = $directiveReader::getRedirect($path)->getPathForLeaf($param);
@@ -74,7 +73,6 @@ class Route implements RouteInformationInterface
             {
                 break;
             }
-        }
-        while ($param = array_shift($this->params));
+        } while ($param = array_shift($this->params));
     }
 }

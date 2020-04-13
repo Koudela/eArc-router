@@ -11,26 +11,19 @@
 
 namespace eArc\Router\LifeCycle;
 
+use eArc\EventTree\EventDispatcher;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
-use eArc\EventTree\Interfaces\EventDispatcherInterface;
+use eArc\EventTree\Exceptions\UnsuitableEventException;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
-use eArc\EventTree\Transformation\ObserverTree;
 use eArc\Router\Interfaces\RouterEventInterface;
 
-class RouterEventDispatcher implements EventDispatcherInterface
+class RouterEventDispatcher extends EventDispatcher
 {
     /** @var ObserverTreeInterface */
     protected $observerTree;
-
-    public function __construct()
-    {
-        $this->observerTree = di_is_decorated(ObserverTreeInterface::class)
-            ? di_get(ObserverTreeInterface::class)
-            : di_get(ObserverTree::class);
-    }
 
     /**
      * @param TreeEventInterface $event
@@ -39,6 +32,7 @@ class RouterEventDispatcher implements EventDispatcherInterface
      *
      * @throws InvalidObserverNodeException
      * @throws IsDispatchedException
+     * @throws UnsuitableEventException
      */
     public function dispatch($event): TreeEventInterface
     {

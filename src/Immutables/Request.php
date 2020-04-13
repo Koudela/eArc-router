@@ -36,15 +36,13 @@ class Request implements RequestInformationInterface
      */
     protected function importArgv(): array
     {
-        $types = ['_GET', '_POST'];
+        $types = [INPUT_GET => $_GET, INPUT_POST => $_POST];
 
         $argv = [];
 
-        foreach ($types as $type) {
-            if (isset($$type)) {
-                foreach ($$type as $key => $value) {
-                    $argv[$key] = filter_input('INPUT' . $type, $key, FILTER_UNSAFE_RAW);
-                }
+        foreach ($types as $type => $var) {
+            foreach ($var as $key => $value) {
+                $argv[$key] = filter_input($type, $key, FILTER_UNSAFE_RAW);
             }
         }
 

@@ -11,6 +11,7 @@
 
 namespace eArc\RouterTests;
 
+use eArc\Core\Configuration;
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
@@ -63,16 +64,7 @@ class RouterTest extends TestCase
         require_once $vendorDir.'/autoload.php';
 
         DI::init();
-
-        di_import_param(['earc' => [
-            'vendor_directory' => $vendorDir,
-            'event_tree' => [
-                'directories' => [
-                    '../earc-event-tree' => 'eArc\\RouterEventTreeRoot',
-                    '../tests/env' => 'eArc\\RouterTests\\env',
-                ]
-            ]
-        ]]);
+        Configuration::build('../tests/env/.earc-config.php');
     }
 
     /**

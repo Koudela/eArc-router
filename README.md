@@ -34,8 +34,10 @@ directory.
           - [The routing directory](#the-routing-directory)
         -  [Mapping routes](#mapping-routes)
     - [Serializing events](#serializing-events)
+    - [Caching the routing tree](#)
  - [Further reading](#further-reading)
  - [Releases](#releases)
+    - [Release 2.0](#release-20)
     - [Release 1.1](#release-11)
     - [Release 1.0](#release-10)
     - [Release 0.1](#release-01) 
@@ -54,15 +56,19 @@ bootstrapped.
 1 . Make use of the composer namespace driven autoloading.
 
 ```php
-require_once '/path/to/your/vendor/dir/autoload.php';
+require_once '/path/to/your/vendor/autoload.php';
 ```
                                                    
-2 . Then bootstrap [earc/di](https://github.com/Koudela/eArc-di) for dependency injection. 
-
+2 . Then bootstrap [earc/di](https://github.com/Koudela/eArc-di) for dependency 
+injection and [earc/core](https://github.com/Koudela/eArc-core) for the configuration
+file.
+ 
 ```php
+use eArc\Core\Configuration;
 use eArc\DI\DI;
 
 DI::init();
+Configuration::build();
 ```
 
 3 . Configure the router (see [configure](#configure)).
@@ -82,26 +88,35 @@ earc/router uses [earc/event-tree](https://github.com/Koudela/eArc-eventTree) to
 pass routing events to observers represented by the directory structure. You
 need a folder within your namespace that is the root for the event tree.
 
+Put the parameters in a file named `.earc-config.php` beneath 
+the vendor folder.
+
 ```php
-di_import_param(['earc' => [
-    // your configuration part (1):
-    'vendor_directory' => '/absolute/path/to/your/vendor/dir',
+<?php #.earc-config.php
+
+return ['earc' => [
+    'is_production_environment' => false,
     'event_tree' => [
         'directories' => [
             'earc/router/earc-event-tree' => 'eArc\\RouterEventTreeRoot',
-            // your configuration part (2):
+            // your configuration part:
             '../path/to/your/eventTree/root/folder' => 'NamespaceOfYour\\EventTreeRoot',
         ]   
     ]
-]]);
+]];
+
 ```
 
-The path to the root folder has to be relative to your projects vendor directory.
+The path to the event tree root folder has to be absolute or relative to your projects 
+vendor directory.
 
-Of course you can use a yml file to define the configuration array.
+Of course you can use a YAML file to define the configuration array.
  
 ```php
-di_import_param(Yaml::parse(file_get_contents('/path/to/your/config.yml')));
+<?php #.earc-config.php
+
+return Yaml::parse(file_get_contents('/path/to/your/config.yml'));
+
 ```
 
 ## Basic usage
@@ -759,6 +774,16 @@ However note that unserialized events need to be dispatched again. They lose the
 position in the routing tree and begin their travel from the routing directory.
 This way it is really hard to mess it up.  
 
+### Caching the routing tree
+
+The concept of the routing tree is deeply rooted in the file system. Filesystem 
+access is not cheap in terms of time and can be a bottle neck. If you use a file 
+cache like [ACPu](https://www.php.net/manual/en/book.apcu.php) it is worth 
+considering loading the event tree structure (even if it may be huge) into memory.
+
+The configuration steps are described in the earc/event-tree 
+[documentation](https://github.com/Koudela/eArc-eventTree#performance-optimization).
+
 ## Further reading 
 
 - Since the earc/router is build on top of the [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
@@ -769,6 +794,11 @@ please feel free to consult the earc/event-tree documentation.
 be a good idea. 
 
 ## Releases
+
+### Release 2.0
+
+- bootstrap via [earc/core](https://github.com/Koudela/eArc-core)
+- caching of the routing tree
 
 ### Release 1.1
 

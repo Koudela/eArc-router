@@ -43,7 +43,7 @@ trait RequestInformationTrait
      */
     public function getArg(string $name, $default = null)
     {
-        return $this->hasArg($this->argv[$name]) ? $this->argv[$name] : $default;
+        return $this->hasArg($name) ? $this->argv[$name] : $default;
     }
 
     /**
