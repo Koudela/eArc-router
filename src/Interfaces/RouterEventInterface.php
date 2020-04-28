@@ -28,4 +28,18 @@ interface RouterEventInterface extends TreeEventInterface
      * @return RouteInformationInterface
      */
     public function getRoute(): RouteInformationInterface;
+
+    /**
+     * Get the response of the controller.
+     *
+     * @return ResponseInterface|null
+     */
+    public function getResponse(): ?ResponseInterface;
+
+    /**
+     * Set the response for the event.
+     *
+     * @param ResponseInterface|null $response
+     */
+    public function setResponse(?ResponseInterface $response): void;
 }

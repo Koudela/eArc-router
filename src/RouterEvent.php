@@ -14,6 +14,7 @@ namespace eArc\Router;
 use eArc\EventTree\TreeEvent;
 use eArc\Router\Immutables\Request;
 use eArc\Router\Immutables\Route;
+use eArc\Router\Interfaces\ResponseInterface;
 use eArc\Router\Interfaces\RouterListenerInterface;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
@@ -28,6 +29,9 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
 
     /** @var RouteInformationInterface */
     protected $route;
+
+    /** @var ResponseInterface|null */
+    protected $response;
 
     public function __construct(?string $uri = null, ?string $requestMethod = null, ?array $argv = null)
     {
@@ -52,6 +56,16 @@ class RouterEvent extends TreeEvent implements RouterEventInterface
     public function getRoute(): RouteInformationInterface
     {
         return $this->route;
+    }
+
+    public function getResponse(): ?ResponseInterface
+    {
+        return $this->response;
+    }
+
+    public function setResponse(?ResponseInterface $response): void
+    {
+        $this->response = $response;
     }
 
     public static function getApplicableListener(): array

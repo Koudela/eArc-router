@@ -222,4 +222,9 @@ class RouterTest extends TestCase
             'eArc\RouterTests\env\routing\serialize\hit\Controller',
         ], $collector->calledListener);
     }
+
+    public function testResponseControllerAssertions()
+    {
+        // TODO: implement;
+    }
 }

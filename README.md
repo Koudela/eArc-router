@@ -17,6 +17,7 @@ directory.
  - [Configure](#configure)
  - [Basic usage](#basic-usage)
     - [The controller](#the-controller)
+    - [The response controller](#the-response-controller)
     - [The router event](#the-router-event)
     - [Routes with special characters](#routes-with-special-characters)
  - [Advanced usage](#advanced-usage)
@@ -37,6 +38,7 @@ directory.
     - [Caching the routing tree](#)
  - [Further reading](#further-reading)
  - [Releases](#releases)
+    - [Release 2.1](#release-21)
     - [Release 2.0](#release-20)
     - [Release 1.1](#release-11)
     - [Release 1.0](#release-10)
@@ -191,6 +193,107 @@ most.
 Since your controllers all have different namespaces you can name them all
 `Controller`. But it is recommended to name them in a more explicit way.
  
+### The response controller
+
+Whereas the `AbstractController` is a traditional 
+[earc/event-tree](https://github.com/Koudela/eArc-eventTree) listener, the 
+`AbstractResponseController` is a step away from events towards the requirements 
+of routing. It is available since release 2.1 and supports parameter injection 
+and transformation. 
+
+This type of controller would look like this:
+
+```php
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\AbstractResponseController;
+use eArc\Router\Interfaces\ResponseInterface;
+use eArc\Router\Response;
+
+class Controller extends AbstractResponseController
+{
+    public function respond(?User $user) : ResponseInterface
+    {
+        //... your controller code goes here
+
+        //... a very basic example without form processing:
+
+        // calling some third party rendering engine    
+        return new Response(di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $user]));
+    }
+}
+```
+
+Hint: Nullable types transform the string parameter `'null'` to the `null` value.
+That makes it possible to send a null value as part of an url. 
+
+The controller code looks a bit cleaner and saves you a view lines. It does not 
+come for free though. The earc router does know the build in primitive types of php 
+and the interfaces it is shipped with only (`RouterEventInterface`, 
+`RouteInformationInterface` and the `RequestInformationInterface`).
+
+You have to extend the existing logic for full type hint support. This can be done
+in two separate ways.
+
+1. Implement the `ParameterFactoryInterface`. 
+
+    ```php
+    use eArc\Router\Interfaces\ParameterFactoryInterface;
+    
+    class MyEntity implements ParameterFactoryInterface
+    {
+        //...
+    
+        public static function buildFromParameter(string $param)
+        {
+            return di_get(EntityManagerInterface::class)
+                ->getRepository(self::class)
+                ->find($param);
+        }
+    }
+    ```
+ 
+2. Extend the `AbstractResponseController` and overwrite the `transform()` method.
+ 
+    ```php
+    use eArc\Router\AbstractResponseController as BaseController;
+    use eArc\Router\Interfaces\RouterEventInterface;
+    
+    abstract class AbstractResponseController extends BaseController
+    {
+        protected function transform(RouterEventInterface $event, int $pos, ReflectionType $type)
+        {
+            $value = parent::transform($event, $pos, $type);
+    
+            if (is_string($value)) {
+                $name = $this->transformSpecialName($type->getName());
+    
+                if (class_exists($name)) {
+                    try {
+                        $entity = di_get(EntityManagerInterface::class)
+                            ->getRepository($name)
+                            ->find($value); 
+    
+                        return !is_null($entity) || $type->allowsNull() ? $entity : $value;
+                    } catch (\Throwable $throwable)  {
+                         return $value;
+                    }                      
+                }        
+            }
+        
+            return $value;   
+        }
+    }
+    ```
+
+You can mix both. The interface approach is a little more efficient. The 
+overwriting approach hides the logic, which is no concern in the everyday 
+use, better.
+ 
+Hint: It is an architectural decision which controller type to prefer. It depends 
+on your project. Traditional web apps should use the `AbstractResponseController` 
+whereas event driven designs may prefer the `AbstractController`.
+
 ### The router event
 
 The router event is always build with an url, request method and variables. Thus 
@@ -794,6 +897,15 @@ please feel free to consult the earc/event-tree documentation.
 be a good idea. 
 
 ## Releases
+
+### Release 2.1
+
+- response controller
+- parameter injection
+- parameter transformer
+- `ParameterFactoryInterface`
+- `AbstractResponseController::USE_REQUEST_KEYS` #TODO Documentation
+- response controller default value #TODO Documentation
 
 ### Release 2.0
 
