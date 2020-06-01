@@ -74,7 +74,7 @@ abstract class AbstractResponseController extends AbstractController
     protected function transform(RouterEventInterface $event, int $pos, ReflectionParameter $parameter)
     {
         $requestKeysCnt = !empty(static::USE_REQUEST_KEYS) ? count(static::USE_REQUEST_KEYS) : 0;
-        $value = $requestKeysCnt > $pos ?
+        $value = $requestKeysCnt > max($pos, 0) ?
             $event->getRequest()->getArg(static::USE_REQUEST_KEYS[$pos]) :
             $event->getRoute()->getParam($pos - $requestKeysCnt);
 
