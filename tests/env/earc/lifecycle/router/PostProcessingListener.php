@@ -5,7 +5,7 @@
  *
  * @package earc/event-tree
  * @link https://github.com/Koudela/eArc-eventTree/
- * @copyright Copyright (c) 2018-2020 Thomas Koudela
+ * @copyright Copyright (c) 2018-2021 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
