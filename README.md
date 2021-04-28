@@ -35,9 +35,10 @@ directory.
           - [The routing directory](#the-routing-directory)
         -  [Mapping routes](#mapping-routes)
     - [Serializing events](#serializing-events)
-    - [Caching the routing tree](#)
+    - [Caching the routing tree](#caching-the-routing-tree)
  - [Further reading](#further-reading)
  - [Releases](#releases)
+    - [Release 3.0](#release-30)
     - [Release 2.1](#release-21)
     - [Release 2.0](#release-20)
     - [Release 1.1](#release-11)
@@ -897,6 +898,10 @@ please feel free to consult the earc/event-tree documentation.
 be a good idea. 
 
 ## Releases
+
+### Release 3.0
+
+- PHP ^7.3 || PHP ^8.0
 
 ### Release 2.1
 

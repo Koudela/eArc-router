@@ -38,7 +38,10 @@ abstract class AbstractResponseController extends AbstractController
         try {
             $this->reflectionMethod = new ReflectionMethod($this, 'respond');
         } catch (ReflectionException $exception) {
-            throw new MethodNotFoundException(sprintf('`%s` has to implement a `respond()` method.', static::class));
+            throw new MethodNotFoundException(sprintf(
+                '{38dd166b-f94d-4e8d-9e64-69be72d077f9} `%s` has to implement a `respond()` method.',
+                static::class
+            ));
         }
     }
 
@@ -65,7 +68,11 @@ abstract class AbstractResponseController extends AbstractController
         $response = $this->respond(...$argv);
 
         if (!is_null($response) && !$response instanceof ResponseInterface) {
-            throw new ReturnTypeException(sprintf('`%s::respond()` has to return an instance of %s', static::class, ResponseInterface::class));
+            throw new ReturnTypeException(sprintf(
+                '{e16aa04d-c06f-4e85-b9b3-7cf5ad5b6989} `%s::respond()` has to return an instance of %s',
+                static::class,
+                ResponseInterface::class
+            ));
         }
 
         $event->setResponse($response);
