@@ -123,6 +123,15 @@ abstract class AbstractResponseController extends AbstractController
             if (is_a($name, ParameterFactoryInterface::class, true)) {
                 return $name::buildFromParameter($value);
             }
+
+            if (function_exists('data_load')
+                && interface_exists(eArc\Data\Entity\Interfaces\EntityInterface::class)
+                && is_a($name, eArc\Data\Entity\Interfaces\EntityInterface::class)
+            ) {
+                $entity = data_load($name, $value);
+
+                return !is_null($entity) || $type->allowsNull() ? $entity : $value;
+            }
         } catch (Throwable $throwable) {
             return $value;
         }

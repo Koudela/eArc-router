@@ -38,6 +38,7 @@ directory.
     - [Caching the routing tree](#caching-the-routing-tree)
  - [Further reading](#further-reading)
  - [Releases](#releases)
+    - [Release 3.1](#release-31)
     - [Release 3.0](#release-30)
     - [Release 2.1](#release-21)
     - [Release 2.0](#release-20)
@@ -229,16 +230,17 @@ Hint: Nullable types transform the string parameter `'null'` to the `null` value
 That makes it possible to send a null value as part of an url. 
 
 The controller code looks a bit cleaner and saves you a view lines. It does not 
-come for free though. The earc router does know the build in primitive types of php 
-and the interfaces it is shipped with only (`RouterEventInterface`, 
-`RouteInformationInterface` and the `RequestInformationInterface`).
+come for free though. The earc router does know the build in primitive types of php, 
+the entities defined via [earc/data](https://github.com/Koudela/eArc-data) and
+the interfaces it is shipped with (`RouterEventInterface`,`RouteInformationInterface`
+and the `RequestInformationInterface`).
 
 You have to extend the existing logic for full type hint support. This can be done
-in two separate ways.
+in two separate ways. (The example uses the well known doctrine orm.)
 
 1. Implement the `ParameterFactoryInterface`. 
 
-    ```php
+ ```php
     use eArc\Router\Interfaces\ParameterFactoryInterface;
     
     class MyEntity implements ParameterFactoryInterface
@@ -252,11 +254,11 @@ in two separate ways.
                 ->find($param);
         }
     }
-    ```
+ ```
  
 2. Extend the `AbstractResponseController` and overwrite the `transform()` method.
  
-    ```php
+ ```php
     use eArc\Router\AbstractResponseController as BaseController;
     use eArc\Router\Interfaces\RouterEventInterface;
     
@@ -285,7 +287,7 @@ in two separate ways.
             return $value;   
         }
     }
-    ```
+```
 
 You can mix both. The interface approach is a little more efficient. The 
 overwriting approach hides the logic, which is no concern in the everyday 
@@ -350,7 +352,7 @@ The `.redirect` directive is explained in the
 
 ## Advanced usage
 
-### Pre and post processing 
+### Pre and post-processing 
 
 There are a tons of examples where logic needs to be executed before or after
 the controller logic. They can be divided into three cases.
@@ -898,6 +900,10 @@ please feel free to consult the earc/event-tree documentation.
 be a good idea. 
 
 ## Releases
+
+### Release 3.1
+
+- `AbstractResponseController` supports type hints for [earc/data](https://github.com/Koudela/eArc-data) entities
 
 ### Release 3.0
 
