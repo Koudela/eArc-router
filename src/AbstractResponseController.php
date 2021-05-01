@@ -13,6 +13,7 @@ namespace eArc\Router;
 
 use eArc\Router\Exceptions\MethodNotFoundException;
 use eArc\Router\Exceptions\ReturnTypeException;
+use eArc\Router\Exceptions\TypeHintException;
 use eArc\Router\Interfaces\ParameterFactoryInterface;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\ResponseInterface;
@@ -20,12 +21,13 @@ use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Interfaces\RouterEventInterface;
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
-use Throwable;
+use ReflectionUnionType;
 
 abstract class AbstractResponseController extends AbstractController
 {
-    const USE_REQUEST_KEYS = null;
+    const USE_REQUEST_KEYS = [];
 
     /** @var ReflectionMethod */
     protected $reflectionMethod;
@@ -46,9 +48,8 @@ abstract class AbstractResponseController extends AbstractController
     }
 
     /**
-     * @param RouterEventInterface $event
-     *
      * @throws ReturnTypeException
+     * @throws TypeHintException
      */
     public function process(RouterEventInterface $event): void
     {
@@ -56,15 +57,10 @@ abstract class AbstractResponseController extends AbstractController
         $pos = 0;
 
         foreach ($this->reflectionMethod->getParameters() as $parameter) {
-            $name = $parameter->getType()->getName();
-            if (is_a($name, RouterEventInterface::class, true)
-                || is_a($name, RouteInformationInterface::class, true)
-                || is_a($name, RequestInformationInterface::class, true)) {
-                $pos--;
-            }
-            $argv[] = $this->transform($event, $pos++, $parameter);
+            $argv[] = $this->transform($event, $pos, $parameter);
         }
 
+        /** @noinspection PhpUndefinedMethodInspection */
         $response = $this->respond(...$argv);
 
         if (!is_null($response) && !$response instanceof ResponseInterface) {
@@ -78,68 +74,89 @@ abstract class AbstractResponseController extends AbstractController
         $event->setResponse($response);
     }
 
-    protected function transform(RouterEventInterface $event, int $pos, ReflectionParameter $parameter)
+    /**
+     * @throws TypeHintException
+     */
+    protected function transform(RouterEventInterface $event, int &$pos, ReflectionParameter $parameter)
     {
-        $requestKeysCnt = !empty(static::USE_REQUEST_KEYS) ? count(static::USE_REQUEST_KEYS) : 0;
-        $value = $requestKeysCnt > max($pos, 0) ?
-            $event->getRequest()->getArg(static::USE_REQUEST_KEYS[$pos]) :
-            $event->getRoute()->getParam($pos - $requestKeysCnt);
+        $type = $parameter->getType();
 
-        try {
-            $type = $parameter->getType();
-            if ('null' === $value) {
-                if ($type->allowsNull()) {
-                    return null;
-                }
-
-                if ($parameter->isDefaultValueAvailable()) {
-                    return $parameter->getDefaultValue();
-                }
-            }
-
-            if ($type->isBuiltin()) {
-                switch ($type->getName()) {
-                    case 'int':case 'integer': return (int) $value;
-                    case 'bool':case 'boolean': return (bool) $value;
-                    case 'float':case 'double':case 'real':  return (float) $value;
-                    default: return $value;
-                }
-            }
-
-            $name = $this->transformSpecialName($type->getName());
-
-            if (is_a($name, RouterEventInterface::class, true)) {
-                return $event;
-            }
-
-            if (is_a($name, RouteInformationInterface::class, true)) {
-                return $event->getRoute();
-            }
-
-            if (is_a($name, RequestInformationInterface::class, true)) {
-                return $event->getRequest();
-            }
-
-            if (is_a($name, ParameterFactoryInterface::class, true)) {
-                return $name::buildFromParameter($value);
-            }
-
-            if (function_exists('data_load')
-                && interface_exists(eArc\Data\Entity\Interfaces\EntityInterface::class)
-                && is_a($name, eArc\Data\Entity\Interfaces\EntityInterface::class)
-            ) {
-                $entity = data_load($name, $value);
-
-                return !is_null($entity) || $type->allowsNull() ? $entity : $value;
-            }
-        } catch (Throwable $throwable) {
-            return $value;
+        if (class_exists(ReflectionUnionType::class) && $type instanceof ReflectionUnionType) {
+            throw new TypeHintException(
+                '{083859dc-41ee-435a-b1c0-40784c0bff7f} AbstractResponseControllers::respond() does not support union-type type hints.'
+            );
         }
 
-            return $value;
+        $name = $type instanceof ReflectionNamedType ? $type->getName() : '';
+
+        if (is_a($name, RouterEventInterface::class, true)
+            || is_a($name, RouteInformationInterface::class, true)
+            || is_a($name, RequestInformationInterface::class, true)) {
+            $value = null;
+        } else {
+            $requestKeysCnt = count(static::USE_REQUEST_KEYS);
+            $value = $requestKeysCnt > $pos ?
+                $event->getRequest()->getArg(static::USE_REQUEST_KEYS[$pos]) :
+                $event->getRoute()->getParam($pos - $requestKeysCnt);
+            $pos++;
+
+            if ('null' === $value && $type->allowsNull()) {
+                $value = null;
+            }
+
+            if (is_null($value)) {
+                if ($parameter->isDefaultValueAvailable()) {
+                    try {
+                        return $parameter->getDefaultValue();
+                    } catch (ReflectionException $exception) {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        if ($type->isBuiltin()) {
+            switch ($name) {
+                case 'int':case 'integer': return (int) $value;
+                case 'bool':case 'boolean': return (bool) $value;
+                case 'float':case 'double':case 'real':  return (float) $value;
+                default: return $value;
+            }
+        }
+
+        $transformedName = $this->transformSpecialName($name);
+
+        if (is_a($transformedName, RouterEventInterface::class, true)) {
+            return $event;
+        }
+
+        if (is_a($transformedName, RouteInformationInterface::class, true)) {
+            return $event->getRoute();
+        }
+
+        if (is_a($transformedName, RequestInformationInterface::class, true)) {
+            return $event->getRequest();
+        }
+
+        if (is_a($transformedName, ParameterFactoryInterface::class, true)) {
+            return $transformedName::buildFromParameter($value);
+        }
+
+        /** @noinspection PhpUndefinedClassInspection */
+        /** @noinspection PhpUndefinedNamespaceInspection */
+        if (function_exists('data_load')
+            && interface_exists(eArc\Data\Entity\Interfaces\EntityInterface::class)
+            && is_a($name, eArc\Data\Entity\Interfaces\EntityInterface::class)
+        ) {
+            $entity = data_load($name, $value);
+
+            return !is_null($entity) || $type->allowsNull() ? $entity : $value;
+        }
+
+        return $value;
     }
 
-    protected function transformSpecialName(string $name)
+    protected function transformSpecialName(string $name): string
     {
         if ('parent' === $name) {
             return $this->reflectionMethod->getDeclaringClass()->getParentClass()->getName();

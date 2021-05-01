@@ -235,7 +235,10 @@ the entities defined via [earc/data](https://github.com/Koudela/eArc-data) and
 the interfaces it is shipped with (`RouterEventInterface`,`RouteInformationInterface`
 and the `RequestInformationInterface`).
 
-You have to extend the existing logic for full type hint support. This can be done
+Hint: Union types are not supported by the transformer and will throw a
+`TypeHintException`.
+
+You have to extend the existing logic to support other type hints. This can be done
 in two separate ways. (The example uses the well known doctrine orm.)
 
 1. Implement the `ParameterFactoryInterface`. 
