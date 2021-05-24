@@ -17,6 +17,8 @@ use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\EventTree\Interfaces\TreeEventInterface;
+use eArc\Router\Immutables\Request;
+use eArc\Router\Immutables\Route;
 use eArc\Router\Interfaces\RequestInformationInterface;
 use eArc\Router\Interfaces\RouteInformationInterface;
 use eArc\Router\Interfaces\RouterEventInterface;
@@ -48,6 +50,7 @@ class RouterTest extends TestCase
         $this->runLifeCycleHooksAssertions();
         $this->runRoutingDirectoryAssertions();
         $this->runSerializingAssertions();
+        $this->runResponseControllerAssertions();
     }
 
     /**
@@ -223,8 +226,31 @@ class RouterTest extends TestCase
         ], $collector->calledListener);
     }
 
-//    public function testResponseControllerAssertions()
-//    {
-//        // TODO: implement;
-//    }
+    /**
+     * @throws IsDispatchedException
+     */
+    public function runResponseControllerAssertions(): void
+    {
+        $input = [
+            'argument1' => 'test1',
+            'argument2' => 42,
+        ];
+        $event = new RouterEvent('/response_controller/parameter-one/parameter-two/null', 'GET', $input);
+        $event->dispatch();
+        $response = $event->getResponse()->response;
+        $this->assertTrue(
+            $response['eventInterface'] instanceof RouterEventInterface &&
+            $response['routeInterface'] instanceof RouteInformationInterface &&
+            $response['requestInterface'] instanceof RequestInformationInterface &&
+            $response['event'] instanceof RouterEvent &&
+            $response['route'] instanceof Route &&
+            $response['request'] instanceof Request
+        );
+        $this->assertEquals('test1', $response['argument1']);
+        $this->assertEquals(42, $response['argument2']);
+        $this->assertEquals(23, $response['argument3']);
+        $this->assertEquals('parameter-one', $response['param1']);
+        $this->assertEquals('parameter-two', $response['param2']);
+        $this->assertEquals(null, $response['param3']);
+    }
 }

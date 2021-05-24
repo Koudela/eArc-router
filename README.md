@@ -10,49 +10,54 @@ Given this direct mapping between the url and the directory structure, understan
 the apps routing process is as simple as typing `tree` at the base of the routing 
 directory.
 
-## Table of contents
+## table of contents
 
- - [Install](#install)
- - [Bootstrap](#bootstrap)
- - [Configure](#configure)
- - [Basic usage](#basic-usage)
-    - [The controller](#the-controller)
-    - [The response controller](#the-response-controller)
-    - [The router event](#the-router-event)
-    - [Routes with special characters](#routes-with-special-characters)
- - [Advanced usage](#advanced-usage)
-    - [Pre and post processing](#pre-and-post-processing)
-        - [Via listeners attached to the route](#via-listeners-attached-to-the-route)
-        - [Via live cycle hooks](#via-live-cycle-hooks)
-    - [Customized events](#customized-events)
-    - [Routing/event tree inheritance](#routingevent-tree-inheritance)
-    - [Subsystem handling](#subsystem-handling)
-    - [Further decoupling](#further-decoupling)
-    - [Customized routes](#customized-routes)
-        - [Rewriting of routes](#rewriting-of-routes)
-          - [The redirect directive](#the-redirect-directive)
-          - [The lookup directive](#the-lookup-directive)
-          - [The routing directory](#the-routing-directory)
-        -  [Mapping routes](#mapping-routes)
-    - [Serializing events](#serializing-events)
-    - [Caching the routing tree](#caching-the-routing-tree)
- - [Further reading](#further-reading)
- - [Releases](#releases)
-    - [Release 3.1](#release-31)
-    - [Release 3.0](#release-30)
-    - [Release 2.1](#release-21)
-    - [Release 2.0](#release-20)
-    - [Release 1.1](#release-11)
-    - [Release 1.0](#release-10)
-    - [Release 0.1](#release-01) 
+ - [install](#install)
+ - [bootstrap](#bootstrap)
+ - [configure](#configure)
+ - [basic usage](#basic-usage)
+    - [the controller](#the-controller)
+    - [the response controller](#the-response-controller)
+        - [implementing class specific type hint support](#implementing-class-specific-type-hint-support)
+        - [implementing type hint support for a category of classes](#implementing-type-hint-support-for-a-category-of-classes)
+        - [type hint request key mapping](#type-hint-request-key-mapping)
+        - [predefined type hints](#predefined-type-hints)
+        - [type hint default values](#type-hint-default-values)
+    - [the router event](#the-router-event)
+    - [routes with special characters](#routes-with-special-characters)
+ - [advanced usage](#advanced-usage)
+    - [pre and post processing](#pre-and-post-processing)
+        - [via listeners attached to the route](#via-listeners-attached-to-the-route)
+        - [via live cycle hooks](#via-live-cycle-hooks)
+    - [customized events](#customized-events)
+    - [routing/event tree inheritance](#routingevent-tree-inheritance)
+    - [subsystem handling](#subsystem-handling)
+    - [further decoupling](#further-decoupling)
+    - [customized routes](#customized-routes)
+        - [rewriting of routes](#rewriting-of-routes)
+          - [the redirect directive](#the-redirect-directive)
+          - [the lookup directive](#the-lookup-directive)
+          - [the routing directory](#the-routing-directory)
+        -  [mapping routes](#mapping-routes)
+    - [serializing events](#serializing-events)
+    - [caching the routing tree](#caching-the-routing-tree)
+ - [further reading](#further-reading)
+ - [releases](#releases)
+    - [release 3.1](#release-31)
+    - [release 3.0](#release-30)
+    - [release 2.1](#release-21)
+    - [release 2.0](#release-20)
+    - [release 1.1](#release-11)
+    - [release 1.0](#release-10)
+    - [release 0.1](#release-01) 
  
-## Install
+## install
 
 ```
 $ composer require earc/router
 ```
 
-## Bootstrap 
+## bootstrap 
 
 Place the following code snippets in the section where your script/framework is 
 bootstrapped.
@@ -86,7 +91,7 @@ $event = new RouterEvent();
 $event->dispatch();
 ```
 
-## Configure
+## configure
 
 earc/router uses [earc/event-tree](https://github.com/Koudela/eArc-eventTree) to
 pass routing events to observers represented by the directory structure. You
@@ -123,7 +128,7 @@ return Yaml::parse(file_get_contents('/path/to/your/config.yml'));
 
 ```
 
-## Basic usage
+## basic usage
 
 Since we use the native tree data structures of the modern operating systems to
 organize our code it is a tiny step to define our routes and targeting controller.
@@ -136,7 +141,7 @@ the end extending the `eArc\Router\AbstractController`.
 3. Use the `process()` method and the passed `RouterEvent` to hook in your controller
 logic.
 
-### The controller
+### the controller
 
 Given you plan to use the urls `/admin/user`, `/admin/user/edit/{id}`, `/admin/user/add` 
 and `/admin/user/delete` for their obvious purpose, you have two options:
@@ -181,12 +186,12 @@ One action in every controller is supreme to the traditional way of parametrized
 method calling:
 
 1. It forces programmers to move business logic out of the controller.
-2. Every action is exposed to pre and post processing. You can add 
-the logic without touching anything but the filesystem. (See pre and post processing 
+2. Every action is exposed to pre and post-processing. You can add 
+the logic without touching anything but the filesystem. (See pre and-post processing 
 [via listeners attached to the route](#via-listeners-attached-to-the-route) for
 details.)
 
-Nevertheless if you want to stick to the traditional way you may implement the 
+If you want to stick to the traditional way you may implement the 
 logic in an abstract `BaseController` extending the  `AbstractController`. Or use 
 the [live cycle hooks](#via-live-cycle-hooks) of the earc router (recommended). For 
 the parametrized method calling logic itself you will need three lines of code at 
@@ -195,13 +200,18 @@ most.
 Since your controllers all have different namespaces you can name them all
 `Controller`. But it is recommended to name them in a more explicit way.
  
-### The response controller
+### the response controller
 
 Whereas the `AbstractController` is a traditional 
 [earc/event-tree](https://github.com/Koudela/eArc-eventTree) listener, the 
 `AbstractResponseController` is a step away from events towards the requirements 
 of routing. It is available since release 2.1 and supports parameter injection 
-and transformation. 
+and transformation (via the 
+[earc/parameter-transformer](https://github.com/Koudela/eArc-parameter-transformer)). 
+
+Hint: It is an architectural decision which controller type to prefer. It depends
+on your project. Traditional web apps should use the `AbstractResponseController`
+whereas event driven designs may prefer the `AbstractController`.
 
 This type of controller would look like this:
 
@@ -214,14 +224,14 @@ use eArc\Router\Response;
 
 class Controller extends AbstractResponseController
 {
-    public function respond(?User $user) : ResponseInterface
+    public function respond(?User $userObject) : ResponseInterface
     {
         //... your controller code goes here
 
         //... a very basic example without form processing:
 
         // calling some third party rendering engine    
-        return new Response(di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $user]));
+        return new Response(di_get(EngineInterface::class)->render('templates/user/edit.html', ['user' => $userObject]));
     }
 }
 ```
@@ -229,81 +239,146 @@ class Controller extends AbstractResponseController
 Hint: Nullable types transform the string parameter `'null'` to the `null` value.
 That makes it possible to send a null value as part of an url. 
 
-The controller code looks a bit cleaner and saves you a view lines. It does not 
-come for free though. The earc router does know the build in primitive types of php, 
-the entities defined via [earc/data](https://github.com/Koudela/eArc-data) and
-the interfaces it is shipped with (`RouterEventInterface`,`RouteInformationInterface`
-and the `RequestInformationInterface`).
-
-Hint: Union types are not supported by the transformer and will throw a
-`TypeHintException`.
+The controller code looks a bit cleaner and saves you a view lines. The earc router 
+does know the build in primitive types of php, the entities defined via 
+[earc/data](https://github.com/Koudela/eArc-data), all services that can be build 
+via [earc/di](https://github.com/Koudela/eArc-di) and the interfaces it is shipped 
+with (`RouterEventInterface`,`RouteInformationInterface`and the `RequestInformationInterface`).
 
 You have to extend the existing logic to support other type hints. This can be done
 in two separate ways. (The example uses the well known doctrine orm.)
 
-1. Implement the `ParameterFactoryInterface`. 
+#### implementing class specific type hint support
+
+To support type hints for a single class implement the `ParameterTransformerFactoryInterface`. 
 
  ```php
-    use eArc\Router\Interfaces\ParameterFactoryInterface;
+    use eArc\ParameterTransformer\Interfaces\ParameterTransformerFactoryInterface;
     
-    class MyEntity implements ParameterFactoryInterface
+    class User implements ParameterTransformerFactoryInterface
     {
         //...
     
-        public static function buildFromParameter(string $param)
+        public static function buildFromParameter($parameter): static
         {
             return di_get(EntityManagerInterface::class)
-                ->getRepository(self::class)
-                ->find($param);
+                ->getRepository(User::class)
+                ->find($parameter);
         }
     }
  ```
  
-2. Extend the `AbstractResponseController` and overwrite the `transform()` method.
- 
+Now `User` object will be injected into the `respond` method if the argument
+`userObject` of the `Request` holds a valid user id.
+
+#### implementing type hint support for a category of classes 
+
+To support a wider range of classes let a service implement the 
+`ParameterTransformerFactoryServiceInterface` and tag it.
+
  ```php
-    use eArc\Router\AbstractResponseController as BaseController;
-    use eArc\Router\Interfaces\RouterEventInterface;
-    
-    abstract class AbstractResponseController extends BaseController
+use eArc\ParameterTransformer\Interfaces\ParameterTransformerFactoryServiceInterface;
+
+class ParameterTransformerExtension implements ParameterTransformerFactoryServiceInterface
+{
+    public function buildFromParameter(string $fQCN, $parameter) : object|null
     {
-        protected function transform(RouterEventInterface $event, int $pos, ReflectionType $type)
-        {
-            $value = parent::transform($event, $pos, $type);
-    
-            if (is_string($value)) {
-                $name = $this->transformSpecialName($type->getName());
-    
-                if (class_exists($name)) {
-                    try {
-                        $entity = di_get(EntityManagerInterface::class)
-                            ->getRepository($name)
-                            ->find($value); 
-    
-                        return !is_null($entity) || $type->allowsNull() ? $entity : $value;
-                    } catch (\Throwable $throwable)  {
-                         return $value;
-                    }                      
-                }        
-            }
-        
-            return $value;   
-        }
+        return di_get(EntityManagerInterface::class)
+            ->getRepository($fQCN)
+            ?->find($parameter);
     }
+}
+
+// ...
+
+di_tag(ParameterTransformerFactoryServiceInterface::class, ParameterTransformerExtension::class);
 ```
 
-You can mix both. The interface approach is a little more efficient. The 
-overwriting approach hides the logic, which is no concern in the everyday 
-use, better.
- 
-Hint: It is an architectural decision which controller type to prefer. It depends 
-on your project. Traditional web apps should use the `AbstractResponseController` 
-whereas event driven designs may prefer the `AbstractController`.
+You can mix both. The `ParameterTransformerFactoryServiceInterface` interface approach is 
+more code efficient but the `ParameterTransformerFactoryInterface` is a tiny pinch 
+ahead in terms of runtime.
 
-### The router event
+#### type hint request key mapping
 
-The router event is always build with an url, request method and variables. Thus 
-each router event instance is always bound to a valid request and can be easily 
+Since the `Route` parameter are accessed via numbers you can not name the `respond` 
+method parameters alike.
+
+For all cases the parameter name can not match the input variables you can define
+a mapping. Just overwrite the `getInputKeyMapping` method of the `AbstractResponseController`
+
+```php
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\AbstractResponseController;
+use eArc\Router\Interfaces\ResponseInterface;
+use eArc\Router\Interfaces\RouterEventInterface;
+
+class Controller extends AbstractResponseController
+{
+    public function respond(?User $userObject, ?string $name) : ResponseInterface
+    {
+        // ...
+    }
+    
+    protected function getInputKeyMapping(RouterEventInterface $event): array
+    {
+        return [
+            'userObject' => 0,
+            'name' => 'new_name',
+        ];
+    }
+}
+```
+
+#### predefined type hints 
+
+The response controller has three predefined type hints:
+1. `RouterEventInterface`
+2. `RouteInformationInterface`
+3. `RequestInformationInterface`
+You can access the related objects simply by type hinting them. To extend the predefined
+type hints extend the `AbstractResponseController` and overwrite the `getPredefinedTypeHints`
+method.
+
+```php
+namespace NamespaceOfYour\EventTreeRoot\routing\admin\user\edit;
+
+use eArc\Router\AbstractResponseController;
+use eArc\Router\Interfaces\RequestInformationInterface;
+use eArc\Router\Interfaces\ResponseInterface;
+use eArc\Router\Interfaces\RouteInformationInterface;
+use eArc\Router\Interfaces\RouterEventInterface;
+
+class Controller extends AbstractResponseController
+{
+    public function respond(MyControllerService $service, ?User $userObject, ?string $name = 'Default Name') : ResponseInterface
+    {
+        // ...
+    }
+    
+    protected function getPredefinedTypeHints(RouterEventInterface $event): array
+    {
+        return [
+            MyControllerService::class => di_get(MyControllerServiceFactory::class)->build($event),
+            RouterEventInterface::class => $event,
+            RouteInformationInterface::class => $event->getResponse(),
+            RequestInformationInterface::class => $event->getRequest(),
+        ];
+    }
+}
+```
+
+#### type hint default values
+The parameter default value is used if the transformation results in a `null` value. 
+If no default value is hinted the `null` value is used.
+
+Hint: A detailed documentation of the transformation process can be found on the 
+pages of the [earc/parameter-transformer](https://github.com/Koudela/eArc-parameter-transformer).
+
+### the router event
+
+The router event is always build with an url, request method and variables. Each 
+router event instance is always bound to a valid request and can be easily 
 serialized and saved for later use if necessary. By passing additional parameters 
 to the event you can overwrite the url, the request method and the variables.
 
@@ -333,7 +408,7 @@ immutable (access via `$event->getRoute()`). For details consult the
 `eArc\Router\Interface\RouteInformationInterface` and the 
 `eArc\Router\Interface\RequestInformationInterface`.
 
-### Routes with special characters
+### routes with special characters
 
 The namespace constrains on characters (especially not allowing `-`, `.` and `~`) 
 limits the usable route names. The fastest solution is to use the `.redirect` 
@@ -353,9 +428,9 @@ Now the route `/spe~ci-al.chars` is represented by the directory
 The `.redirect` directive is explained in the 
 [The redirect directive](#the-redirect-directive) section in detail.
 
-## Advanced usage
+## advanced usage
 
-### Pre and post-processing 
+### pre and post-processing 
 
 There are a tons of examples where logic needs to be executed before or after
 the controller logic. They can be divided into three cases.
@@ -363,7 +438,7 @@ the controller logic. They can be divided into three cases.
 2. The logic is specific to a sub route/set of controllers.
 3. The logic is useful for all or nearly all controllers.
 
-#### Via listeners attached to the route
+#### via listeners attached to the route
 
 The first two cases can use the fact that the earc/router uses the earc/event-tree 
 package. The route events travel from the `routing` folder to the targeted controller 
@@ -463,11 +538,11 @@ class Listener implements RouterListenerInterface, SortableListenerInterface, Ph
 To learn more of listener `patience` and event `phases` consult the documentation of
 the [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 
-#### Via live cycle hooks
+#### via live cycle hooks
 
 The simplest way to implement the third case and hook into the live cycle of all 
 controllers is to extend your controllers from your own base controller. You can 
-do pre and post processing, log exceptions or implement the old style of action 
+do pre and post-processing, log exceptions or implement the old style of action 
 handling - having many actions in one controller.
 
 ```php
@@ -603,11 +678,11 @@ di_import_param(['earc' => ['event_tree' => ['blacklist' => [
 ]]]]);
 ```
 
-Now our logic is open (for extension) and closed (for modification) on a app
+Now our logic is open (for extension) and closed (for modification) on an app
 inheritance scale.
 
 Instead of blacklisting the `ExecuteCallListener` you can decorate
-him if you prefer. 
+it if you prefer. 
 ```php
 use NamespaceOfYour\App\Somewhere\OutsideTheEventTree\ExecuteCallListener;
 use eArc\RouterEventTreeRoot\earc\lifecycle\router\ExecuteCallListener as OriginECL;
@@ -621,7 +696,7 @@ has to be done before the first event ist dispatched.
 2. In the case of decoration you have to place the decorating `ExecuteCallListener`
 outside the event tree.
 
-### Routing/event tree inheritance
+### routing/event tree inheritance
 
 As you may have noticed, the original `ExecuteCallListener` lives outside of *your*
 event tree root directory as part of the vendor directory but is called by the event.
@@ -638,7 +713,7 @@ Event tree inheritance is a mighty tool but can be confusing for beginners. You
 can use the `view-tree` command line tool of the earc/event-tree package
 to draw (and `grep`) a representation of the actual tree.
 
-### Customized events
+### customized events
 
 To keep your components decoupled the event should be the only place where 
 runtime information is kept (when a listener/controller has finished his work).
@@ -701,7 +776,7 @@ $event->dispatch();
 Now all runtime information that has to be exchanged between your listeners/controllers 
 is exposed, easy to find and easy to understand.
 
-### Subsystem handling
+### subsystem handling
 
 If you need a router event that triggers only a subset of listeners/controllers,
 you can modify the `getApplicableListener()` method provided by the `EventInterface`.
@@ -718,7 +793,7 @@ Other use cases where this functionality comes handy:
 - Different parts of the app can be toggled.
 - Different phases of processing routes.
 
-### Further decoupling
+### further decoupling
 
 You can use both the event tree and the router tree (you can look at it as a 
 subset of the event tree) for a better decoupling of your code. Lets do one more
@@ -770,16 +845,16 @@ directory structure as the returned objects. This way you reduce the configurati
 overhead significantly. Note that this directory structure can be completely different
 from the routing directory structure.
 
-### Customized routes
+### customized routes
 
-#### Rewriting of routes
+#### rewriting of routes
 
 There are several reasons for a route to change. Backward compatibility, customer 
 request or SEO are just three of it. On a app without routing tree inheritance 
 (event tree inheritance on the routing part) it is easy. Just rename and restructure 
 the folders.
 
-##### The redirect directive
+##### the redirect directive
 
 If you need the same content under different routes you should use the `.redirect`
 directive of the earc/event-tree. It is just a file named `.redirect`. You can place
@@ -823,7 +898,7 @@ change the called controller or the order the listeners are called.
 
 To rewrite the base leafs put the `.redirect` directive into the event tree root.
 
-##### The lookup directive
+##### the lookup directive
 
 Every `.redirect` directive you use destroys a bit of the clarity the explicit
 design of the event tree gives to you. Therefore making massive use of the `.redirect` 
@@ -837,7 +912,7 @@ linked leaf of the event tree will be handled as if it would reside in the curre
 leaf. Every line is an separate include. The path has to be relative to the event
 tree root.
 
-##### The routing directory
+##### the routing directory
 
 If you rewrite a routing tree it is a best practice to use a new routing directory.
 If you don't, you will need beside the `.lookup` directive (which is easy to understand)
@@ -862,7 +937,7 @@ You can define different routing directories for different events. The first key
 the event passes an `instanceof` check against defines the routing directory. If 
 none passes the routing directory is `routing`. 
 
-#### Mapping routes
+#### mapping routes
 
 There are some use cases where a mapping is superior to the concepts of the earc 
 router. Think of a multinational site prefixing the routes with the language key
@@ -872,7 +947,7 @@ controller who sets the language locale and makes the rerouting. There is nothin
 wrong with that but its much more efficient to extract the language and cut down 
 the route by a few lines of code. 
 
-### Serializing events
+### serializing events
 
 Routing events can be serialized. 
 
@@ -883,7 +958,7 @@ However note that unserialized events need to be dispatched again. They lose the
 position in the routing tree and begin their travel from the routing directory.
 This way it is really hard to mess it up.  
 
-### Caching the routing tree
+### caching the routing tree
 
 The concept of the routing tree is deeply rooted in the file system. Filesystem 
 access is not cheap in terms of time and can be a bottle neck. If you use a file 
@@ -893,45 +968,57 @@ considering loading the event tree structure (even if it may be huge) into memor
 The configuration steps are described in the earc/event-tree 
 [documentation](https://github.com/Koudela/eArc-eventTree#performance-optimization).
 
-## Further reading 
+## further reading 
 
-- Since the earc/router is build on top of the [earc/event-tree](https://github.com/Koudela/eArc-eventTree) 
-please feel free to consult the earc/event-tree documentation.
+- The earc/router is build on top of the
+  [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
+  Please feel free to consult the earc/event-tree documentation.
 
 - To take full advantage of the global container free dependency injection system
-[earc/di](https://github.com/Koudela/eArc-di) reading its documentation might 
-be a good idea. 
+  [earc/di](https://github.com/Koudela/eArc-di) reading its documentation might 
+  be a good idea. 
 
-## Releases
+- To handle edge cases of the type hint transformation the documentation of the
+  [earc/parameter-transformer](https://github.com/Koudela/eArc-parameter-transformer)
+  gives insight.
 
-### Release 3.1
+## releases
+
+### release 4.0
+- PHP ^8.0 only
+- Type hint transformation of the `AbstractResponseController` uses the 
+  [earc/parameter-transformer](https://github.com/Koudela/eArc-parameter-transformer).
+- `eArc\Router\Interfaces\ParameterFactoryInterface` is replaced by 
+  `eArc\ParameterTransformer\Interfaces\ParameterTransformerFactoryInterface`
+
+### release 3.1
 
 - `AbstractResponseController` supports type hints for [earc/data](https://github.com/Koudela/eArc-data) entities
 
-### Release 3.0
+### release 3.0
 
 - PHP ^7.3 || PHP ^8.0
 
-### Release 2.1
+### release 2.1
 
 - response controller
 - parameter injection
 - parameter transformer
 - `ParameterFactoryInterface`
-- `AbstractResponseController::USE_REQUEST_KEYS` #TODO Documentation
-- response controller default value #TODO Documentation
+- `AbstractResponseController::USE_REQUEST_KEYS`
+- response controller default value
 
-### Release 2.0
+### release 2.0
 
 - bootstrap via [earc/core](https://github.com/Koudela/eArc-core)
 - caching of the routing tree
 
-### Release 1.1
+### release 1.1
 
 - `RequestInformationInterface::getArg()` and `RouteInformationInterface::getParam()`
 now accept a default parameter
 
-### Release 1.0
+### release 1.0
 
 - The route is now matched against the `routing` part of an 
 [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
@@ -942,8 +1029,8 @@ payload to the dispatched earc/event-tree event.
 - There are no access and main-controller anymore. Controller are now
 disguised earc/event-tree listener.
 - The router live cycle is exposed via an event tree. Making it easy to implement
-pre and post processing while following the open-closed-principle on a large scale.
+pre and post-processing while following the open-closed-principle on a large scale.
 
-### Release 0.1
+### release 0.1
 
 The first official release.

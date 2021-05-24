@@ -26,6 +26,13 @@ class Request implements RequestInformationInterface
     public function __construct(?string $type = null, ?array $argv = null)
     {
         $this->type = $type ?? ($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->argv = $argv ?? $_REQUEST;
+        $this->argv = $argv ?? $this->getInput();
+    }
+
+    protected function getInput(): array
+    {
+        parse_str(file_get_contents('php://input'), $values);
+
+        return $values;
     }
 }
